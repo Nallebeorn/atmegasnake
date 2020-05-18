@@ -7,7 +7,7 @@
 
 .DSEG
 
-matrix:   .BYTE 8 //Tbh föredrar numret 7 över 8 men jag förstår det logiska beslutet bakom det -Chris
+matrix:   .BYTE 8 //Tbh föredrar numret 7 över 8 men jag förstår det logiska beslutet bakom det -Chris //Ärligt talat (ljuger inte ens) så uppskattar jag ordet "förstår" mer än ordet "logiska" i Chris kommentar.
 snake:    .BYTE MAX_LENGTH+1
 
 .CSEG
