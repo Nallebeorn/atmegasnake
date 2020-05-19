@@ -49,5 +49,16 @@ init:
 	 //BIG BRAIN COLUMNS
 	 out	PORTB, rTemp
 
+	 // r0 = 0b00000000
+	 // r1 = 0b00000000
+	 // r2 = 0b00000000
+	 // r3 = 0b00000000
+	 // r4 = 0b00000000
+	 // r5 = 0b00000000
+	 // r6 = 0b00000000
+	 // r7 = 0b00000000
+
+	 //Would there be a way to flip single 1 or 0s at will depending on light to turn on? -Sebastian
+
 timer:
 	jmp	timer
