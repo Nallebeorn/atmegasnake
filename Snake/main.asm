@@ -38,10 +38,15 @@ init:
      ldi	rTemp, LOW(RAMEND)
      out	SPL, rTemp
 
-	 sbi	PORTC, PORTC0
+	 ldi	rTemp, 0x3f
+
+	 //ROWS
+	 out	PORTC, rTemp
+	 out	PORTD, rTemp
+	 //COLUMNS (find how to integrate with the "out" method like the rest -Sebastian)
 	 sbi	PORTD, PORTD6
 	 sbi	PORTD, PORTD7
-	 ldi	rTemp, 0x3f
+	 //BIG BRAIN COLUMNS
 	 out	PORTB, rTemp
 
 timer:
