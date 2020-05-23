@@ -1,4 +1,5 @@
 .DEF rTemp         = r16
+.DEF rRow          = r17
 .DEF rDirection    = r23
 
 .EQU NUM_COLUMNS   = 8
@@ -38,6 +39,17 @@ init:
      ldi	rTemp, LOW(RAMEND)
      out	SPL, rTemp
 
+     // Sätt lamppins till output
+     ldi    rTemp, 0x0f
+     out    DDRC, rTemp
+     ldi    rTemp, 0xf0
+     out    DDRD, rTemp
+     ldi    rTemp, 0x3f
+     out    DDRB, rTemp
+
+     // Initialisera variabler
+     ldi    rRow, 0x00
+
      // Aktivera och konfigurera timern
      lds    rTemp, TCCR0B
      ori    rTemp, 0x05
@@ -62,15 +74,25 @@ loop:
 	 //Would there be a way to flip single 1 or 0s at will depending on light to turn on? -Sebastian
 
 timer:
-	ldi	rTemp, 0xff
+    cpi     rRow, 0x01
+    breq    row2
+row1:
+    // Sätt på första raden, släck andra
+    sbi     PORTC, PORTC0
+    cbi     PORTC, PORTC1
+    // Sätt på första kolumnen, släck andra
+    sbi     PORTD, PORTD6
+    cbi     PORTD, PORTD7
+    ldi     rRow, 0x01
+    
+    reti
+row2:
+	// Sätt på andra raden, släck första
+    cbi     PORTC, PORTC0
+    sbi     PORTC, PORTC1
+    // Sätt på andra kolumnen, släck första
+    cbi     PORTD, PORTD6
+    sbi     PORTD, PORTD7
+    ldi     rRow, 0x00
 
-	//ROWS
-	out	PORTC, rTemp
-	out	PORTD, rTemp
-	//COLUMNS
-	sbi	PORTD, PORTD6
-	sbi	PORTD, PORTD7
-	//BIG BRAIN COLUMNS
-	out	PORTB, rTemp
-	
     reti
