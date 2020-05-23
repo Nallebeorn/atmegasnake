@@ -52,7 +52,7 @@ init:
 
      // Aktivera och konfigurera timern
      lds    rTemp, TCCR0B
-     ori    rTemp, 0x05
+     ori    rTemp, 0x01
      out    TCCR0B, rTemp
      sei
      lds    rTemp, TIMSK0
