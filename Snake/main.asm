@@ -42,7 +42,7 @@ init:
      // Sätt lamppins till output
      ldi    rTemp, 0x0f
      out    DDRC, rTemp
-     ldi    rTemp, 0xf0
+     ldi    rTemp, 0xfc
      out    DDRD, rTemp
      ldi    rTemp, 0x3f
      out    DDRB, rTemp
@@ -50,9 +50,28 @@ init:
      // Initialisera variabler
      ldi    rRow, 0x00
 
+     // Fyll matris
+     ldi    rTemp, 0x01
+     sts    matrix + 0, rTemp
+     ldi    rTemp, 0x02
+     sts    matrix + 1, rTemp
+     ldi    rTemp, 0x04
+     sts    matrix + 2, rTemp
+     ldi    rTemp, 0x08
+     sts    matrix + 3, rTemp
+
+     ldi    rTemp, 0x08
+     sts    matrix + 4, rTemp
+     ldi    rTemp, 0x04
+     sts    matrix + 5, rTemp
+     ldi    rTemp, 0x02
+     sts    matrix + 6, rTemp
+     ldi    rTemp, 0x01
+     sts    matrix + 7, rTemp
+
      // Aktivera och konfigurera timern
      lds    rTemp, TCCR0B
-     ori    rTemp, 0x01
+     ori    rTemp, 0x02
      out    TCCR0B, rTemp
      sei
      lds    rTemp, TIMSK0
@@ -71,28 +90,111 @@ loop:
 	 // r6 = 0b00000000
 	 // r7 = 0b00000000
 
-	 //Would there be a way to flip single 1 or 0s at will depending on light to turn on? -Sebastian
+	 // Would there be a way to flip single 1 or 0s at will depending on light to turn on? -Sebastian
 
 timer:
-    cpi     rRow, 0x01
-    breq    row2
-row1:
-    // Sätt på första raden, släck andra
-    sbi     PORTC, PORTC0
-    cbi     PORTC, PORTC1
-    // Sätt på första kolumnen, släck andra
-    sbi     PORTD, PORTD6
-    cbi     PORTD, PORTD7
-    ldi     rRow, 0x01
-    
-    reti
-row2:
-	// Sätt på andra raden, släck första
-    cbi     PORTC, PORTC0
-    sbi     PORTC, PORTC1
-    // Sätt på andra kolumnen, släck första
+
+// Clear all columns
     cbi     PORTD, PORTD6
+    cbi     PORTD, PORTD7
+    cbi     PORTB, PORTB0
+    cbi     PORTB, PORTB1
+    cbi     PORTB, PORTB2
+    cbi     PORTB, PORTB3
+    cbi     PORTB, PORTB4
+    cbi     PORTB, PORTB5
+
+// Enable correct columns
+    ldi     XL, LOW(matrix)
+    ldi     XH, HIGH(matrix)
+    add     XL, rRow
+
+    ld      rTemp, X
+testCol0:
+    bst     rTemp, 0
+    brtc    testCol1
+    sbi     PORTD, PORTD6
+testCol1:
+    bst     rTemp, 1
+    brtc    testCol2
     sbi     PORTD, PORTD7
+testCol2:
+    bst     rTemp, 2
+    brtc    testCol3
+    sbi     PORTB, PORTB0
+testCol3:
+    bst     rTemp, 3
+    brtc    testCol4
+    sbi     PORTB, PORTB1
+testCol4:
+    bst     rTemp, 4
+    brtc    testCol5
+    sbi     PORTB, PORTB2
+testCol5:
+    bst     rTemp, 5
+    brtc    testCol6
+    sbi     PORTB, PORTB3
+testCol6:
+    bst     rTemp, 6
+    brtc    testCol7
+    sbi     PORTB, PORTB4
+testCol7:
+    bst     rTemp, 7
+    brtc    columnsDone
+    sbi     PORTB, PORTB5
+columnsDone:
+
+// Enable correct row
+testRow0:
+    cpi     rRow, 0x00
+    brne    testRow1
+    sbi     PORTC, PORTC0
+    cbi     PORTD, PORTD5
+    jmp     rowsDone
+testRow1:
+    cpi     rRow, 0x01
+    brne    testRow2
+    sbi     PORTC, PORTC1
+    cbi     PORTC, PORTC0
+    jmp     rowsDone
+testRow2:
+    cpi     rRow, 0x02
+    brne    testRow3
+    sbi     PORTC, PORTC2
+    cbi     PORTC, PORTC1
+    jmp     rowsDone
+testRow3:
+    cpi     rRow, 0x03
+    brne    testRow4
+    sbi     PORTC, PORTC3
+    cbi     PORTC, PORTC2
+    jmp     rowsDone
+testRow4:
+    cpi     rRow, 0x04
+    brne    testRow5
+    sbi     PORTD, PORTD2
+    cbi     PORTC, PORTC3
+    jmp     rowsDone
+testRow5:
+    cpi     rRow, 0x05
+    brne    testRow6
+    sbi     PORTD, PORTD3
+    cbi     PORTD, PORTD2
+    jmp     rowsDone
+testRow6:
+    cpi     rRow, 0x06
+    brne    testRow7
+    sbi     PORTD, PORTD4
+    cbi     PORTD, PORTD3
+    jmp     rowsDone
+testRow7:
+    sbi     PORTD, PORTD5
+    cbi     PORTD, PORTD4
     ldi     rRow, 0x00
+    jmp     incrementRowDone
+
+rowsDone:
+    inc     rRow
+incrementRowDone:
 
     reti
