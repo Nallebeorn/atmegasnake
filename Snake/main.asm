@@ -7,7 +7,7 @@
 
 .DSEG
 
-matrix:   .BYTE 8 //Tbh f�redrar numret 7 �ver 8 men jag f�rst�r det logiska beslutet bakom det -Chris //�rligt talat (ljuger inte ens) s� uppskattar jag ordet "f�rst�r" mer �n ordet "logiska" i Chris kommentar. //Vem skrev detta??? Sn�lla l�mna en anm�rkning p� vem som skrev kommentaren n�sta g�ng -Chris //Ah, sorry Chris! Det var jag. -Albin
+matrix:   .BYTE 8 //Tbh föredrar numret 7 över 8 men jag förstör det logiska beslutet bakom det -Chris //Ärligt talat (ljuger inte ens) så uppskattar jag ordet "förstör" mer än ordet "logiska" i Chris kommentar. //Vem skrev detta??? Snälla lämna en anmärkning på vem som skrev kommentaren nästa gång -Chris //Ah, sorry Chris! Det var jag. -Albin
 snake:    .BYTE MAX_LENGTH+1
 
 .CSEG
@@ -32,7 +32,7 @@ snake:    .BYTE MAX_LENGTH+1
      jmp timer  // Timer 0 overflow
 
 init:
-     // S�tt stackpekaren till h�gsta minnesadressen
+     // Sätt stackpekaren till högsta minnesadressen
      ldi	rTemp, HIGH(RAMEND)
      out	SPH, rTemp
      ldi	rTemp, LOW(RAMEND)
