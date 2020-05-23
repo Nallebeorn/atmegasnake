@@ -38,16 +38,17 @@ init:
      ldi	rTemp, LOW(RAMEND)
      out	SPL, rTemp
 
-	 ldi	rTemp, 0xff
+     // Aktivera och konfigurera timern
+     lds    rTemp, TCCR0B
+     ori    rTemp, 0x05
+     out    TCCR0B, rTemp
+     sei
+     lds    rTemp, TIMSK0
+     ori    rTemp, 0x01
+     sts    TIMSK0, rTemp
 
-	 //ROWS
-	 out	PORTC, rTemp
-	 out	PORTD, rTemp
-	 //COLUMNS (find how to integrate with the "out" method like the rest -Sebastian)
-	 sbi	PORTD, PORTD6
-	 sbi	PORTD, PORTD7
-	 //BIG BRAIN COLUMNS
-	 out	PORTB, rTemp
+loop:
+     jmp    loop
 
 	 // r0 = 0b00000000
 	 // r1 = 0b00000000
@@ -61,4 +62,15 @@ init:
 	 //Would there be a way to flip single 1 or 0s at will depending on light to turn on? -Sebastian
 
 timer:
-	jmp	timer
+	ldi	rTemp, 0xff
+
+	//ROWS
+	out	PORTC, rTemp
+	out	PORTD, rTemp
+	//COLUMNS
+	sbi	PORTD, PORTD6
+	sbi	PORTD, PORTD7
+	//BIG BRAIN COLUMNS
+	out	PORTB, rTemp
+	
+    reti
