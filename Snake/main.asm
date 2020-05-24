@@ -51,22 +51,22 @@ init:
      ldi    rRow, 0x00
 
      // Fyll matris
-     ldi    rTemp, 0x01
+     ldi    rTemp, 0x00
      sts    matrix + 0, rTemp
-     ldi    rTemp, 0x02
+     ldi    rTemp, 0x24
      sts    matrix + 1, rTemp
-     ldi    rTemp, 0x04
+     ldi    rTemp, 0x24
      sts    matrix + 2, rTemp
-     ldi    rTemp, 0x08
+     ldi    rTemp, 0x00
      sts    matrix + 3, rTemp
 
-     ldi    rTemp, 0x08
+     ldi    rTemp, 0x42
      sts    matrix + 4, rTemp
-     ldi    rTemp, 0x04
+     ldi    rTemp, 0x3C
      sts    matrix + 5, rTemp
-     ldi    rTemp, 0x02
+     ldi    rTemp, 0x0
      sts    matrix + 6, rTemp
-     ldi    rTemp, 0x01
+     ldi    rTemp, 0x0
      sts    matrix + 7, rTemp
 
      // Aktivera och konfigurera timern
