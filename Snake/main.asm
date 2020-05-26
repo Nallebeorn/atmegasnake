@@ -110,23 +110,6 @@ timer:
     cbi     PORTB, PORTB4
     cbi     PORTB, PORTB5
 
-// A/D-omvandling
-	 lds    rTemp, ADMUX
-     andi   rTemp, 0xf0
-     ori    rTemp, 0x05
-     sts    ADMUX, rTemp
-     lds    rTemp, ADCSRA
-     ori    rTemp, 1 << ADSC
-     sts    ADCSRA, rTemp
-wait:
-     lds    rTemp, ADCSRA
-     sbrc   rTemp, ADSC
-     jmp    wait
-
-     lds    rTemp, ADCH
-     sts    matrix, rTemp
-	 
-
 // Enable correct columns
     ldi     XL, LOW(matrix)
     ldi     XH, HIGH(matrix)
@@ -214,10 +197,28 @@ testRow7:
     sbi     PORTD, PORTD5
     cbi     PORTD, PORTD4
     ldi     rRow, 0x00
-    jmp     incrementRowDone
+    jmp     lastRow
 
 rowsDone:
     inc     rRow
-incrementRowDone:
+    reti
+
+lastRow:
+
+// A/D-omvandling
+	lds    rTemp, ADMUX
+    andi   rTemp, 0xf0
+    ori    rTemp, 0x05
+    sts    ADMUX, rTemp
+    lds    rTemp, ADCSRA
+    ori    rTemp, 1 << ADSC
+    sts    ADCSRA, rTemp
+wait:
+    lds    rTemp, ADCSRA
+    sbrc   rTemp, ADSC
+    jmp    wait
+
+    lds    rTemp, ADCH
+    sts    matrix, rTemp
 
     reti
