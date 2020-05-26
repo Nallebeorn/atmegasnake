@@ -69,6 +69,27 @@ init:
      ldi    rTemp, 0x0
      sts    matrix + 7, rTemp
 
+	      // Aktivera och konfigurera A/D-omvandling for joystickavläsning
+     lds    rTemp, REFS0
+     ori    rTemp, 0x06
+     out    REFS0, rTemp
+     lds    rTemp, REFS1
+     ori    rTemp, 0x00
+     sts    REFS1, rTemp
+
+	 lds    rTemp, ADPS0
+     ori    rTemp, 0x01
+     out    ADPS0, rTemp
+     lds    rTemp, ADPS1
+     ori    rTemp, 0x01
+     sts    ADPS1, rTemp
+	 lds    rTemp, ADPS2
+     ori    rTemp, 0x01
+     sts    ADPS2, rTemp
+	 lds    rTemp, ADEN
+     ori    rTemp, 0x01
+     sts    ADEN, rTemp
+
      // Aktivera och konfigurera timern
      lds    rTemp, TCCR0B
      ori    rTemp, 0x02
@@ -103,6 +124,21 @@ timer:
     cbi     PORTB, PORTB3
     cbi     PORTB, PORTB4
     cbi     PORTB, PORTB5
+
+// A/D-omvandling
+	/* lds    rTemp, MUX0
+     ori    rTemp, 0x04
+     sts    MUX0, rTemp
+	 lds    rTemp, MUX1
+     ori    rTemp, 0x04
+     sts    MUX1, rTemp
+	 lds    rTemp, MUX2
+     ori    rTemp, 0x04
+     sts    MUX2, rTemp
+	 lds    rTemp, MUX3
+     ori    rTemp, 0x04
+     sts    MUX3, rTemp
+	 */
 
 // Enable correct columns
     ldi     XL, LOW(matrix)
