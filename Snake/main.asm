@@ -1,7 +1,11 @@
+// Interrupt registers
 .DEF rTemp         = r16
 .DEF rRow          = r17
-.DEF rJoyX         = r18
-.DEF rJoyY         = r19
+.DEF rStatus       = r3
+// Not interrupt registers
+.DEF rTemp2        = r18
+.DEF rJoyX         = r19
+.DEF rJoyY         = r20
 .DEF rDirection    = r23
 
 .EQU NUM_COLUMNS   = 8
@@ -87,7 +91,39 @@ init:
      sts    TIMSK0, rTemp
 
 loop:
-     jmp    loop
+// A/D-omvandling
+// X-axel
+	lds    rTemp2, ADMUX
+    andi   rTemp2, 0xf0
+    ori    rTemp2, 0x05
+    sts    ADMUX, rTemp2
+    lds    rTemp2, ADCSRA
+    ori    rTemp2, 1 << ADSC
+    sts    ADCSRA, rTemp2
+waitJoyX:
+    lds    rTemp2, ADCSRA
+    sbrc   rTemp2, ADSC
+    jmp    waitJoyX
+    lds    rJoyX, ADCH
+
+	lds    rTemp2, ADMUX
+    andi   rTemp2, 0xf0
+    ori    rTemp2, 0x04
+    sts    ADMUX, rTemp2
+    lds    rTemp2, ADCSRA
+    ori    rTemp2, 1 << ADSC
+    sts    ADCSRA, rTemp2
+waitJoyY:
+    lds    rTemp2, ADCSRA
+    sbrc   rTemp2, ADSC
+    jmp    waitJoyY
+
+    lds    rJoyY, ADCH
+
+    sts    matrix, rJoyX
+    sts    matrix + 7, rJoyY
+
+    jmp    loop
 
 	 // r0 = 0b00000000
 	 // r1 = 0b00000000
@@ -101,7 +137,8 @@ loop:
 	 // Would there be a way to flip single 1 or 0s at will depending on light to turn on? -Sebastian
 
 timer:
-
+    in      rStatus, SREG
+    
 // Clear all columns
     cbi     PORTD, PORTD6
     cbi     PORTD, PORTD7
@@ -203,40 +240,8 @@ testRow7:
 
 rowsDone:
     inc     rRow
-    reti
 
 lastRow:
 
-// A/D-omvandling
-// X-axel
-	lds    rTemp, ADMUX
-    andi   rTemp, 0xf0
-    ori    rTemp, 0x05
-    sts    ADMUX, rTemp
-    lds    rTemp, ADCSRA
-    ori    rTemp, 1 << ADSC
-    sts    ADCSRA, rTemp
-waitJoyX:
-    lds    rTemp, ADCSRA
-    sbrc   rTemp, ADSC
-    jmp    waitJoyX
-    lds    rJoyX, ADCH
-
-	lds    rTemp, ADMUX
-    andi   rTemp, 0xf0
-    ori    rTemp, 0x04
-    sts    ADMUX, rTemp
-    lds    rTemp, ADCSRA
-    ori    rTemp, 1 << ADSC
-    sts    ADCSRA, rTemp
-waitJoyY:
-    lds    rTemp, ADCSRA
-    sbrc   rTemp, ADSC
-    jmp    waitJoyY
-
-    lds    rJoyY, ADCH
-
-    sts    matrix, rJoyX
-    sts    matrix + 7, rJoyY
-
+    out     SREG, rStatus
     reti
