@@ -51,44 +51,29 @@ init:
      ldi    rRow, 0x00
 
      // Fyll matris
-     ldi    rTemp, 0x00
+     ldi    rTemp, 0b00000000
      sts    matrix + 0, rTemp
-     ldi    rTemp, 0x24
+     ldi    rTemp, 0b00100100
      sts    matrix + 1, rTemp
-     ldi    rTemp, 0x24
+     ldi    rTemp, 0b00100100
      sts    matrix + 2, rTemp
-     ldi    rTemp, 0x00
+     ldi    rTemp, 0b00000000
      sts    matrix + 3, rTemp
 
-     ldi    rTemp, 0x42
+     ldi    rTemp, 0b01000010
      sts    matrix + 4, rTemp
-     ldi    rTemp, 0x3C
+     ldi    rTemp, 0b00111100
      sts    matrix + 5, rTemp
-     ldi    rTemp, 0x0
+     ldi    rTemp, 0b00000000
      sts    matrix + 6, rTemp
-     ldi    rTemp, 0x0
+     ldi    rTemp, 0b00000000
      sts    matrix + 7, rTemp
 
-	      // Aktivera och konfigurera A/D-omvandling for joystickavläsning
-     lds    rTemp, REFS0
-     ori    rTemp, 0x01
-     out    REFS0, rTemp
-     lds    rTemp, REFS1
-     ori    rTemp, 0x00
-     sts    REFS1, rTemp
-
-	 lds    rTemp, ADPS0
-     ori    rTemp, 0x01
-     out    ADPS0, rTemp
-     lds    rTemp, ADPS1
-     ori    rTemp, 0x01
-     sts    ADPS1, rTemp
-	 lds    rTemp, ADPS2
-     ori    rTemp, 0x01
-     sts    ADPS2, rTemp
-	 lds    rTemp, ADEN
-     ori    rTemp, 0x01
-     sts    ADEN, rTemp
+	 // Aktivera och konfigurera A/D-omvandling for joystickavläsning
+     ldi    rTemp, 0b01100000
+     sts    ADMUX, rTemp
+     ldi    rTemp, 0b10000111
+     sts    ADCSRA, rTemp
 
      // Aktivera och konfigurera timern
      lds    rTemp, TCCR0B
@@ -126,19 +111,18 @@ timer:
     cbi     PORTB, PORTB5
 
 // A/D-omvandling
-	/* lds    rTemp, MUX0
+	 lds    rTemp, ADMUX
+     andi   rTemp, 0xf0
      ori    rTemp, 0x04
-     sts    MUX0, rTemp
-	 lds    rTemp, MUX1
-     ori    rTemp, 0x04
-     sts    MUX1, rTemp
-	 lds    rTemp, MUX2
-     ori    rTemp, 0x04
-     sts    MUX2, rTemp
-	 lds    rTemp, MUX3
-     ori    rTemp, 0x04
-     sts    MUX3, rTemp
-	 */
+     sts    ADMUX, rTemp
+     lds    rTemp, ADCSRA
+     ori    rTemp, 1 << ADSC
+     sts    ADCSRA, rTemp
+wait:
+     lds    rTemp, ADCSRA
+     sbrc   rTemp, ADSC
+     jmp    wait  
+	 
 
 // Enable correct columns
     ldi     XL, LOW(matrix)
