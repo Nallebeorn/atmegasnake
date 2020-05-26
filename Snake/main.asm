@@ -1,5 +1,7 @@
 .DEF rTemp         = r16
 .DEF rRow          = r17
+.DEF rJoyX         = r18
+.DEF rJoyY         = r19
 .DEF rDirection    = r23
 
 .EQU NUM_COLUMNS   = 8
@@ -206,6 +208,7 @@ rowsDone:
 lastRow:
 
 // A/D-omvandling
+// X-axel
 	lds    rTemp, ADMUX
     andi   rTemp, 0xf0
     ori    rTemp, 0x05
@@ -213,12 +216,27 @@ lastRow:
     lds    rTemp, ADCSRA
     ori    rTemp, 1 << ADSC
     sts    ADCSRA, rTemp
-wait:
+waitJoyX:
     lds    rTemp, ADCSRA
     sbrc   rTemp, ADSC
-    jmp    wait
+    jmp    waitJoyX
+    lds    rJoyX, ADCH
 
-    lds    rTemp, ADCH
-    sts    matrix, rTemp
+	lds    rTemp, ADMUX
+    andi   rTemp, 0xf0
+    ori    rTemp, 0x04
+    sts    ADMUX, rTemp
+    lds    rTemp, ADCSRA
+    ori    rTemp, 1 << ADSC
+    sts    ADCSRA, rTemp
+waitJoyY:
+    lds    rTemp, ADCSRA
+    sbrc   rTemp, ADSC
+    jmp    waitJoyY
+
+    lds    rJoyY, ADCH
+
+    sts    matrix, rJoyX
+    sts    matrix + 7, rJoyY
 
     reti
