@@ -6,6 +6,7 @@
 .DEF rTemp2        = r18
 .DEF rJoyX         = r19
 .DEF rJoyY         = r20
+.DEF rMask         = r21
 .DEF rDirection    = r23
 
 .EQU NUM_COLUMNS   = 8
@@ -15,7 +16,8 @@
 .DSEG
 
 matrix:   .BYTE 8 //Tbh föredrar numret 7 över 8 men jag förstör det logiska beslutet bakom det -Chris //Ärligt talat (ljuger inte ens) så uppskattar jag ordet "förstör" mer än ordet "logiska" i Chris kommentar. //Vem skrev detta??? Snälla lämna en anmärkning på vem som skrev kommentaren nästa gång -Chris //Ah, sorry Chris! Det var jag. -Albin
-snake:    .BYTE MAX_LENGTH+1
+snakeX:   .BYTE MAX_LENGTH+1
+snakeY:   .BYTE MAX_LENGTH+1
 
 .CSEG
 // Interrupt vector table
@@ -55,9 +57,12 @@ init:
 
      // Initialisera variabler
      ldi    rRow, 0x00
+     ldi    rTemp, 0x04
+     sts    snakeX, rTemp
+     sts    snakeY, rTemp
 
      // Fyll matris
-     ldi    rTemp, 0b00000000
+/*     ldi    rTemp, 0b00000000
      sts    matrix + 0, rTemp
      ldi    rTemp, 0b00100100
      sts    matrix + 1, rTemp
@@ -73,7 +78,7 @@ init:
      ldi    rTemp, 0b00000000
      sts    matrix + 6, rTemp
      ldi    rTemp, 0b00000000
-     sts    matrix + 7, rTemp
+     sts    matrix + 7, rTemp*/
 
 	 // Aktivera och konfigurera A/D-omvandling for joystickavläsning
      ldi    rTemp, 0b01100000
@@ -93,48 +98,54 @@ init:
 loop:
 // A/D-omvandling
 // X-axel
-	lds    rTemp2, ADMUX
-    andi   rTemp2, 0xf0
-    ori    rTemp2, 0x05
-    sts    ADMUX, rTemp2
-    lds    rTemp2, ADCSRA
-    ori    rTemp2, 1 << ADSC
-    sts    ADCSRA, rTemp2
+	lds     rTemp2, ADMUX
+    andi    rTemp2, 0xf0
+    ori     rTemp2, 0x05
+    sts     ADMUX, rTemp2
+    lds     rTemp2, ADCSRA
+    ori     rTemp2, 1 << ADSC
+    sts     ADCSRA, rTemp2
 waitJoyX:
-    lds    rTemp2, ADCSRA
-    sbrc   rTemp2, ADSC
-    jmp    waitJoyX
-    lds    rJoyX, ADCH
+    lds     rTemp2, ADCSRA
+    sbrc    rTemp2, ADSC
+    jmp     waitJoyX
+    lds     rJoyX, ADCH
 
-	lds    rTemp2, ADMUX
-    andi   rTemp2, 0xf0
-    ori    rTemp2, 0x04
-    sts    ADMUX, rTemp2
-    lds    rTemp2, ADCSRA
-    ori    rTemp2, 1 << ADSC
-    sts    ADCSRA, rTemp2
+	lds     rTemp2, ADMUX
+    andi    rTemp2, 0xf0
+    ori     rTemp2, 0x04
+    sts     ADMUX, rTemp2
+    lds     rTemp2, ADCSRA
+    ori     rTemp2, 1 << ADSC
+    sts     ADCSRA, rTemp2
 waitJoyY:
-    lds    rTemp2, ADCSRA
-    sbrc   rTemp2, ADSC
-    jmp    waitJoyY
+    lds     rTemp2, ADCSRA
+    sbrc    rTemp2, ADSC
+    jmp     waitJoyY
 
-    lds    rJoyY, ADCH
+    lds     rJoyY, ADCH
 
-    sts    matrix, rJoyX
-    sts    matrix + 7, rJoyY
+// Rita snake
+    ldi     rMask, 0x01
+    lds     rTemp2, snakeX
+findXMask:
+    cpi     rTemp2, 0x00
+    breq    findXMaskDone
+    lsl     rMask
+    dec     rTemp2
+    jmp     findXMask
+findXMaskDone:
 
-    jmp    loop
+    ldi     YL, LOW(matrix)
+    ldi     YH, HIGH(matrix)
+    lds     rTemp2, snakeY
+    add     YL, rTemp2
 
-	 // r0 = 0b00000000
-	 // r1 = 0b00000000
-	 // r2 = 0b00000000
-	 // r3 = 0b00000000
-	 // r4 = 0b00000000
-	 // r5 = 0b00000000
-	 // r6 = 0b00000000
-	 // r7 = 0b00000000
+    st      Y, rMask
 
-	 // Would there be a way to flip single 1 or 0s at will depending on light to turn on? -Sebastian
+    jmp     loop
+
+
 
 timer:
     in      rStatus, SREG
