@@ -125,6 +125,24 @@ waitJoyY:
 
     lds     rJoyY, ADCH
 
+// Flytta snake
+    lds     rTemp2, snakeX
+testLeft:
+    cpi     rJoyX, 0xff
+    brlo    testRight
+    cpi     rTemp2, 0x01
+    brlo    testRight
+    subi    rTemp2, 1
+    jmp     testXDone
+testRight:
+    cpi     rJoyX, 0x01
+    brsh    testXDone
+    cpi     rTemp2, 0x07
+    brsh    testXDone
+    subi    rTemp2, -1
+testXDone:
+    sts     snakeX, rTemp2
+
 // Rita snake
     ldi     rMask, 0x01
     lds     rTemp2, snakeX
@@ -143,12 +161,15 @@ findXMaskDone:
 
     st      Y, rMask
 
+    sts     matrix + 7, rJoyX
+
     jmp     loop
 
 
 
 timer:
     in      rStatus, SREG
+    push    rTemp
     
 // Clear all columns
     cbi     PORTD, PORTD6
@@ -253,6 +274,7 @@ rowsDone:
     inc     rRow
 
 lastRow:
-
+    
+    pop     rTemp
     out     SREG, rStatus
     reti
