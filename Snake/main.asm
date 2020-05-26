@@ -71,7 +71,7 @@ init:
 
 	      // Aktivera och konfigurera A/D-omvandling for joystickavläsning
      lds    rTemp, REFS0
-     ori    rTemp, 0x06
+     ori    rTemp, 0x01
      out    REFS0, rTemp
      lds    rTemp, REFS1
      ori    rTemp, 0x00
