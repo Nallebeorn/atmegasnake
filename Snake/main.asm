@@ -113,7 +113,7 @@ timer:
 // A/D-omvandling
 	 lds    rTemp, ADMUX
      andi   rTemp, 0xf0
-     ori    rTemp, 0x04
+     ori    rTemp, 0x05
      sts    ADMUX, rTemp
      lds    rTemp, ADCSRA
      ori    rTemp, 1 << ADSC
@@ -121,7 +121,10 @@ timer:
 wait:
      lds    rTemp, ADCSRA
      sbrc   rTemp, ADSC
-     jmp    wait  
+     jmp    wait
+
+     lds    rTemp, ADCH
+     sts    matrix, rTemp
 	 
 
 // Enable correct columns
