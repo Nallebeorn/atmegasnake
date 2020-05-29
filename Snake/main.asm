@@ -8,7 +8,7 @@
 .DEF rJoyX         = r19
 .DEF rJoyY         = r20
 .DEF rMask         = r21
-.DEF rX            = r24
+.DEF rX            = r24 // Argument till drawDot + temporär huvudposition
 .DEF rY            = r25
 
 .EQU NUM_COLUMNS   = 8
@@ -66,35 +66,20 @@ init:
      sts    snakeY + 1, rTemp
      sts    snakeY + 2, rTemp
      sts    snakeY + 3, rTemp
-
      sts    snakeX + 0, rTemp
+     sts    snakeX + 1, rTemp
+     sts    snakeX + 2, rTemp
+     sts    snakeX + 3, rTemp
+
+/*     sts    snakeX + 0, rTemp
      ldi    rTemp, 0x03
      sts    snakeX + 1, rTemp
      ldi    rTemp, 0x02
      sts    snakeX + 2, rTemp
      ldi    rTemp, 0x01
-     sts    snakeX + 3, rTemp
+     sts    snakeX + 3, rTemp*/
 
-     ldi    rUpdate, 0x0
-
-     // Fyll matris
-/*     ldi    rTemp, 0b00000000
-     sts    matrix + 0, rTemp
-     ldi    rTemp, 0b00100100
-     sts    matrix + 1, rTemp
-     ldi    rTemp, 0b00100100
-     sts    matrix + 2, rTemp
-     ldi    rTemp, 0b00000000
-     sts    matrix + 3, rTemp
-
-     ldi    rTemp, 0b01000010
-     sts    matrix + 4, rTemp
-     ldi    rTemp, 0b00111100
-     sts    matrix + 5, rTemp
-     ldi    rTemp, 0b00000000
-     sts    matrix + 6, rTemp
-     ldi    rTemp, 0b00000000
-     sts    matrix + 7, rTemp*/
+     ldi    rUpdate, 0x00
 
 	 // Aktivera och konfigurera A/D-omvandling for joystickavläsning
      ldi    rTemp, 0b01100000
