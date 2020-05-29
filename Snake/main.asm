@@ -135,14 +135,14 @@ waitJoyY:
 // Flytta snake
     lds     rTemp2, snakeX
 testLeft:
-    cpi     rJoyX, 0xff
+    cpi     rJoyX, 0xe0
     brlo    testRight
     cpi     rTemp2, 0x01
     brlo    testRight
     subi    rTemp2, 1
     jmp     testXDone
 testRight:
-    cpi     rJoyX, 0x01
+    cpi     rJoyX, 0x20
     brsh    testXDone
     cpi     rTemp2, 0x07
     brsh    testXDone
@@ -152,14 +152,14 @@ testXDone:
 
     lds     rTemp2, snakeY
 testUp:
-    cpi     rJoyY, 0xff
+    cpi     rJoyY, 0xe0
     brlo    testDown
     cpi     rTemp2, 0x01
     brlo    testDown
     subi    rTemp2, 1
     jmp     testYDone
-testdown:
-    cpi     rJoyY, 0x01
+testDown:
+    cpi     rJoyY, 0x20
     brsh    testYDone
     cpi     rTemp2, 0x07
     brsh    testYDone
