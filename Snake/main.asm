@@ -61,6 +61,9 @@ init:
      // Initialisera variabler
      ldi    rRow, 0x00
 
+     ldi    rJoyX, 0x80
+     ldi    rJoyY, 0x80
+
      ldi    rTemp, 0x04
      sts    snakeY + 0, rTemp
      sts    snakeY + 1, rTemp
@@ -97,10 +100,6 @@ init:
      sts    TIMSK0, rTemp
 
 loop:
-    cpi     rUpdate, UPDATE_INTERVAL
-    brlo    loop
-    ldi     rUpdate, 0x00
-
 // A/D-omvandling
 // X-axel
 	lds     rTemp2, ADMUX
@@ -114,8 +113,17 @@ waitJoyX:
     lds     rTemp2, ADCSRA
     sbrc    rTemp2, ADSC
     jmp     waitJoyX
-    lds     rJoyX, ADCH
 
+    lds     rTemp2, ADCH
+    cpi     rTemp2, 0xe0
+    brsh    loadJoyX
+    cpi     rTemp2, 0x20
+    brsh    readjoyY
+loadJoyX:
+    mov     rJoyX, rTemp2
+    ldi     rJoyY, 0x80
+
+readJoyY:
 	lds     rTemp2, ADMUX
     andi    rTemp2, 0xf0
     ori     rTemp2, 0x04
@@ -128,7 +136,20 @@ waitJoyY:
     sbrc    rTemp2, ADSC
     jmp     waitJoyY
 
-    lds     rJoyY, ADCH
+    lds     rTemp2, ADCH
+    cpi     rTemp2, 0xe0
+    brsh    loadJoyY
+    cpi     rTemp2, 0x20
+    brsh    readJoyDone
+loadJoyY:
+    mov     rJoyY, rTemp2
+    ldi     rJoyX, 0x80
+readJoyDone:
+
+// Kolla om det är dags att uppdatera
+    cpi     rUpdate, UPDATE_INTERVAL
+    brlo    loop
+    ldi     rUpdate, 0x00
 
 // Flytta huvud
     lds     rX, snakeX
