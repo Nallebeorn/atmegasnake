@@ -2,6 +2,7 @@
 .DEF rTemp         = r16
 .DEF rRow          = r17
 .DEF rStatus       = r3
+.DEF rUpdate       = r22
 // Not interrupt registers
 .DEF rTemp2        = r18
 .DEF rJoyX         = r19
@@ -11,6 +12,7 @@
 
 .EQU NUM_COLUMNS   = 8
 .EQU MAX_LENGTH    = 25
+.EQU UPDATE_INTERVAL = 128
 
 
 .DSEG
@@ -60,6 +62,7 @@ init:
      ldi    rTemp, 0x04
      sts    snakeX, rTemp
      sts    snakeY, rTemp
+     ldi    rUpdate, 0x00
 
      // Fyll matris
 /*     ldi    rTemp, 0b00000000
@@ -96,6 +99,10 @@ init:
      sts    TIMSK0, rTemp
 
 loop:
+    cpi     rUpdate, UPDATE_INTERVAL
+    brlo    loop
+    ldi     rUpdate, 0x00
+
 // A/D-omvandling
 // X-axel
 	lds     rTemp2, ADMUX
@@ -268,6 +275,7 @@ testRow7:
     sbi     PORTD, PORTD5
     cbi     PORTD, PORTD4
     ldi     rRow, 0x00
+    inc     rUpdate
     jmp     lastRow
 
 rowsDone:
