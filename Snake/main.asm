@@ -178,38 +178,32 @@ testDown:
     subi    rY, -1
 testYDone:
 
-// Flytta svans
-moveTailX:
+// Flytta inte svans om inte huvudet rört på sig
     lds     rTemp2, snakeX
     cp      rTemp2, rX
-    breq    moveTailY       // Don't move tail if head didn't move
-    ldi     YL, LOW(snakeX + MAX_LENGTH - 2)
-    ldi     YH, HIGH(snakeX + MAX_LENGTH - 2)
-    ldi     rTemp, 0x00
-tailLoopX:
-    ld      rTemp2, Y
-    std     Y + 1, rTemp2
-
-    dec     YL
-    inc     rTemp
-    cpi     rTemp, MAX_LENGTH - 1
-    brlo    tailLoopX
-
-moveTailY:
+    brne    moveTail
     lds     rTemp2, snakeY
     cp      rTemp2, rY
-    breq    moveTailDone       // Don't move tail if head didn't move
-    ldi     YL, LOW(snakeY + MAX_LENGTH - 2)
-    ldi     YH, HIGH(snakeY + MAX_LENGTH - 2)
+    breq    moveTailDone
+
+// Flytta svans
+moveTail:
+    ldi     YL, LOW(snakeX + MAX_LENGTH - 2)
+    ldi     YH, HIGH(snakeX + MAX_LENGTH - 2)
+    ldi     ZL, LOW(snakeY + MAX_LENGTH - 2)
+    ldi     ZH, HIGH(snakeY + MAX_LENGTH - 2)
     ldi     rTemp, 0x00
-tailLoopY:
+tailLoop:
     ld      rTemp2, Y
     std     Y + 1, rTemp2
+    ld      rTemp2, Z
+    std     Z + 1, rTemp2
 
     dec     YL
+    dec     ZL
     inc     rTemp
     cpi     rTemp, MAX_LENGTH - 1
-    brlo    tailLoopY
+    brlo    tailLoop
 
 moveTailDone:
     sts     snakeX, rX
