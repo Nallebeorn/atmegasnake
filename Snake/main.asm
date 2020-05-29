@@ -150,6 +150,34 @@ testRight:
 testXDone:
     sts     snakeX, rTemp2
 
+    lds     rTemp2, snakeY
+testUp:
+    cpi     rJoyY, 0xff
+    brlo    testDown
+    cpi     rTemp2, 0x01
+    brlo    testDown
+    subi    rTemp2, 1
+    jmp     testYDone
+testdown:
+    cpi     rJoyY, 0x01
+    brsh    testYDone
+    cpi     rTemp2, 0x07
+    brsh    testYDone
+    subi    rTemp2, -1
+testYDone:
+    sts     snakeY, rTemp2
+
+// Töm matris
+    ldi     rTemp2, 0x00
+    sts     matrix + 0, rTemp2
+    sts     matrix + 1, rTemp2
+    sts     matrix + 2, rTemp2
+    sts     matrix + 3, rTemp2
+    sts     matrix + 4, rTemp2
+    sts     matrix + 5, rTemp2
+    sts     matrix + 6, rTemp2
+    sts     matrix + 7, rTemp2
+
 // Rita snake
     ldi     rMask, 0x01
     lds     rTemp2, snakeX
@@ -167,8 +195,6 @@ findXMaskDone:
     add     YL, rTemp2
 
     st      Y, rMask
-
-    sts     matrix + 7, rJoyX
 
     jmp     loop
 
