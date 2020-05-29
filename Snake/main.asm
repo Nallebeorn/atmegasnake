@@ -8,18 +8,19 @@
 .DEF rJoyX         = r19
 .DEF rJoyY         = r20
 .DEF rMask         = r21
-.DEF rDirection    = r23
+.DEF rX            = r24
+.DEF rY            = r25
 
 .EQU NUM_COLUMNS   = 8
-.EQU MAX_LENGTH    = 25
+.EQU MAX_LENGTH    = 4
 .EQU UPDATE_INTERVAL = 128
 
 
 .DSEG
 
 matrix:   .BYTE 8 //Tbh föredrar numret 7 över 8 men jag förstör det logiska beslutet bakom det -Chris //Ärligt talat (ljuger inte ens) så uppskattar jag ordet "förstör" mer än ordet "logiska" i Chris kommentar. //Vem skrev detta??? Snälla lämna en anmärkning på vem som skrev kommentaren nästa gång -Chris //Ah, sorry Chris! Det var jag. -Albin
-snakeX:   .BYTE MAX_LENGTH+1
-snakeY:   .BYTE MAX_LENGTH+1
+snakeX:   .BYTE MAX_LENGTH
+snakeY:   .BYTE MAX_LENGTH
 
 .CSEG
 // Interrupt vector table
@@ -59,10 +60,22 @@ init:
 
      // Initialisera variabler
      ldi    rRow, 0x00
+
      ldi    rTemp, 0x04
-     sts    snakeX, rTemp
-     sts    snakeY, rTemp
-     ldi    rUpdate, 0x00
+     sts    snakeY + 0, rTemp
+     sts    snakeY + 1, rTemp
+     sts    snakeY + 2, rTemp
+     sts    snakeY + 3, rTemp
+
+     sts    snakeX + 0, rTemp
+     ldi    rTemp, 0x03
+     sts    snakeX + 1, rTemp
+     ldi    rTemp, 0x02
+     sts    snakeX + 2, rTemp
+     ldi    rTemp, 0x01
+     sts    snakeX + 3, rTemp
+
+     ldi    rUpdate, 0x0
 
      // Fyll matris
 /*     ldi    rTemp, 0b00000000
@@ -132,40 +145,75 @@ waitJoyY:
 
     lds     rJoyY, ADCH
 
-// Flytta snake
-    lds     rTemp2, snakeX
+// Flytta huvud
+    lds     rX, snakeX
 testLeft:
     cpi     rJoyX, 0xe0
     brlo    testRight
-    cpi     rTemp2, 0x01
+    cpi     rX, 0x01
     brlo    testRight
-    subi    rTemp2, 1
+    subi    rX, 1
     jmp     testXDone
 testRight:
     cpi     rJoyX, 0x20
     brsh    testXDone
-    cpi     rTemp2, 0x07
+    cpi     rX, 0x07
     brsh    testXDone
-    subi    rTemp2, -1
+    subi    rX, -1
 testXDone:
-    sts     snakeX, rTemp2
 
-    lds     rTemp2, snakeY
+    lds     rY, snakeY
 testUp:
     cpi     rJoyY, 0xe0
     brlo    testDown
-    cpi     rTemp2, 0x01
+    cpi     rY, 0x01
     brlo    testDown
-    subi    rTemp2, 1
+    subi    rY, 1
     jmp     testYDone
 testDown:
     cpi     rJoyY, 0x20
     brsh    testYDone
-    cpi     rTemp2, 0x07
+    cpi     rY, 0x07
     brsh    testYDone
-    subi    rTemp2, -1
+    subi    rY, -1
 testYDone:
-    sts     snakeY, rTemp2
+
+// Flytta svans
+moveTailX:
+    lds     rTemp2, snakeX
+    cp      rTemp2, rX
+    breq    moveTailY       // Don't move tail if head didn't move
+    ldi     YL, LOW(snakeX + MAX_LENGTH - 2)
+    ldi     YH, HIGH(snakeX + MAX_LENGTH - 2)
+    ldi     rTemp, 0x00
+tailLoopX:
+    ld      rTemp2, Y
+    std     Y + 1, rTemp2
+
+    dec     YL
+    inc     rTemp
+    cpi     rTemp, MAX_LENGTH - 1
+    brlo    tailLoopX
+
+moveTailY:
+    lds     rTemp2, snakeY
+    cp      rTemp2, rY
+    breq    moveTailDone       // Don't move tail if head didn't move
+    ldi     YL, LOW(snakeY + MAX_LENGTH - 2)
+    ldi     YH, HIGH(snakeY + MAX_LENGTH - 2)
+    ldi     rTemp, 0x00
+tailLoopY:
+    ld      rTemp2, Y
+    std     Y + 1, rTemp2
+
+    dec     YL
+    inc     rTemp
+    cpi     rTemp, MAX_LENGTH - 1
+    brlo    tailLoopY
+
+moveTailDone:
+    sts     snakeX, rX
+    sts     snakeY, rY
 
 // Töm matris
     ldi     rTemp2, 0x00
@@ -179,26 +227,43 @@ testYDone:
     sts     matrix + 7, rTemp2
 
 // Rita snake
+    lds     rX, snakeX
+    lds     rY, snakeY
+    call    drawDot
+
+    lds     rX, snakeX + 1
+    lds     rY, snakeY + 1
+    call    drawDot
+
+    lds     rX, snakeX + 2
+    lds     rY, snakeY + 2
+    call    drawDot
+
+    lds     rX, snakeX + 3
+    lds     rY, snakeY + 3
+    call    drawDot
+
+    jmp     loop
+
+drawDot:
     ldi     rMask, 0x01
-    lds     rTemp2, snakeX
 findXMask:
-    cpi     rTemp2, 0x00
+    cpi     rX, 0x00
     breq    findXMaskDone
     lsl     rMask
-    dec     rTemp2
+    dec     rX
     jmp     findXMask
 findXMaskDone:
 
     ldi     YL, LOW(matrix)
     ldi     YH, HIGH(matrix)
-    lds     rTemp2, snakeY
-    add     YL, rTemp2
+    add     YL, rY
 
-    st      Y, rMask
+    ld      rTemp2, Y
+    or      rTemp2, rMask
+    st      Y, rTemp2
 
-    jmp     loop
-
-
+    ret
 
 timer:
     in      rStatus, SREG
