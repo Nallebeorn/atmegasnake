@@ -18,7 +18,7 @@
 
 .DSEG
 
-matrix:   .BYTE 8 //Tbh föredrar numret 7 över 8 men jag förstör det logiska beslutet bakom det -Chris //Ärligt talat (ljuger inte ens) så uppskattar jag ordet "förstör" mer än ordet "logiska" i Chris kommentar. //Vem skrev detta??? Snälla lämna en anmärkning på vem som skrev kommentaren nästa gång -Chris //Ah, sorry Chris! Det var jag. -Albin
+matrix:   .BYTE 8 
 snakeX:   .BYTE MAX_LENGTH
 snakeY:   .BYTE MAX_LENGTH
 
@@ -112,11 +112,11 @@ loop:
 waitJoyX:
     lds     rTemp2, ADCSRA
     sbrc    rTemp2, ADSC
-    jmp     waitJoyX
+    jmp     waitJoyX // Ovillorligt hopp till waitJoyX
 
     lds     rTemp2, ADCH
-    cpi     rTemp2, 0xe0
-    brsh    loadJoyX
+    cpi     rTemp2, 0xe0 // Jämnför rTemp2 med konstanten 224
+    brsh    loadJoyX // Hoppar till loadJoyX om rTemp2 är högre eller lika med 224
     cpi     rTemp2, 0x20
     brsh    readjoyY
 loadJoyX:
@@ -186,11 +186,11 @@ testYDone:
 
 // Flytta inte svans om inte huvudet rört på sig
     lds     rTemp2, snakeX
-    cp      rTemp2, rX
-    brne    moveTail
+    cp      rTemp2, rX  // Jämnför rTemp2 med rX
+    brne    moveTail // Hoppar till moveTail om rTemp2 inte är lika med rX
     lds     rTemp2, snakeY
     cp      rTemp2, rY
-    breq    moveTailDone
+    breq    moveTailDone // Hoppar till moveTailDone om rTemp2 är lika med rY (om Z bit:en i statusregistret är 1)
 
 // Flytta svans
 moveTail:
@@ -250,7 +250,7 @@ drawDot:
 findXMask:
     cpi     rX, 0x00
     breq    findXMaskDone
-    lsl     rMask
+    lsl     rMask // Skiftar bit:arna i rMask ett steg åt vänster
     dec     rX
     jmp     findXMask
 findXMaskDone:
@@ -267,7 +267,7 @@ findXMaskDone:
 
 timer:
     in      rStatus, SREG
-    push    rTemp
+    push    rTemp // Sänker SP och sätter rTemp på toppen av stacken
     
 // Clear all columns
     cbi     PORTD, PORTD6
@@ -286,8 +286,8 @@ timer:
 
     ld      rTemp, X
 testCol0:
-    bst     rTemp, 0
-    brtc    testCol1
+    bst     rTemp, 0 // Kopierar bit 0 i rTemp till bit T i statusregistret
+    brtc    testCol1 // Hoppar till testCol1 om T är 0
     sbi     PORTD, PORTD6
 testCol1:
     bst     rTemp, 1
@@ -374,6 +374,6 @@ rowsDone:
 
 lastRow:
     
-    pop     rTemp
+    pop     rTemp // Sätter rTemp till elementet i toppen av stacken och ökar SP
     out     SREG, rStatus
     reti
