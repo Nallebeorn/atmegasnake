@@ -1,13 +1,13 @@
 // We should consider renaming some of these and changing the comments to a different structure. -Sebastian
 
 //////////////////////////////      
-//       LEDJOY SNAKE       //		  ########
-//////////////////////////////		##__####__##
-//							//		#|  |##|  |#
-//       Created  by:       //		#####uu#####
-//  Christoffer Cederfeldt  //		  ########
-//	 Sebastian  Alkstrand   //		   |||| |
-//	   Amanda Lindqvist     //		   ######
+//       LEDJOY SNAKE       //        ########
+//////////////////////////////      ##__####__##
+//                          //      #|  |##|  |#
+//       Created  by:       //      #####uu#####
+//  Christoffer Cederfeldt  //         ########
+//	 Sebastian  Alkstrand   //         |||| |
+//	   Amanda Lindqvist     //         ######
 //							//
 //////////////////////////////
 
