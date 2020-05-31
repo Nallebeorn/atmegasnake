@@ -1,15 +1,15 @@
 // Interrupt registers
 .DEF rTemp         = r16
-.DEF rRow          = r17
-.DEF rStatus       = r3
-.DEF rUpdate       = r22
+.DEF rRow          = r17 // Vilken led-rad som ska tändas härnäst
+.DEF rStatus       = r3  // Lagra statusregister så de kan återställas efter avbrottet
+.DEF rUpdate       = r22 // Räknar upp (till UPDATE_INTERVAL) tills det är dags att uppdatera spellogiken
 // Not interrupt registers
 .DEF rTemp2        = r18
-.DEF rJoyX         = r19
-.DEF rJoyY         = r20
-.DEF rMask         = r21
+.DEF rJoyX         = r19 // Joystick x-axel
+.DEF rJoyY         = r20 // Joystick y-axel
+.DEF rMask         = r21 // Används i drawDot, värdet på en matrisrad för att tända en viss pixel i raden
 .DEF rX            = r24 // Argument till drawDot + temporär huvudposition
-.DEF rY            = r25
+.DEF rY            = r25 // -||-
 
 .EQU NUM_COLUMNS   = 8
 .EQU MAX_LENGTH    = 4
@@ -18,9 +18,9 @@
 
 .DSEG
 
-matrix:   .BYTE 8 
-snakeX:   .BYTE MAX_LENGTH
-snakeY:   .BYTE MAX_LENGTH
+matrix:   .BYTE 8          // Varje byte är en rad. MSB = kolumn längst till höger. LSB = kolumn längst till vänster.
+snakeX:   .BYTE MAX_LENGTH // Array av x-positioner (första är huvudets x)
+snakeY:   .BYTE MAX_LENGTH // Array av y-positioner (första är huvudets y)
 
 .CSEG
 // Interrupt vector table
@@ -61,10 +61,10 @@ init:
      // Initialisera variabler
      ldi    rRow, 0x00
 
-     ldi    rJoyX, 0x80
+     ldi    rJoyX, 0x80     // 128 är neutral joystick-position (hälften av 256)
      ldi    rJoyY, 0x80
 
-     ldi    rTemp, 0x04
+     ldi    rTemp, 0x04         // sätt alla snake-segment till position (4, 4)
      sts    snakeY + 0, rTemp
      sts    snakeY + 1, rTemp
      sts    snakeY + 2, rTemp
@@ -73,14 +73,6 @@ init:
      sts    snakeX + 1, rTemp
      sts    snakeX + 2, rTemp
      sts    snakeX + 3, rTemp
-
-/*     sts    snakeX + 0, rTemp
-     ldi    rTemp, 0x03
-     sts    snakeX + 1, rTemp
-     ldi    rTemp, 0x02
-     sts    snakeX + 2, rTemp
-     ldi    rTemp, 0x01
-     sts    snakeX + 3, rTemp*/
 
      ldi    rUpdate, 0x00
 
@@ -102,18 +94,19 @@ init:
 loop:
 // A/D-omvandling
 // X-axel
-	lds     rTemp2, ADMUX
-    andi    rTemp2, 0xf0
-    ori     rTemp2, 0x05
+	lds     rTemp2, ADMUX   // ADMUX använd för att välja rätt analogingång
+    andi    rTemp2, 0xf0    // Sätt bit 0-3 till 0
+    ori     rTemp2, 0x05    // Sätt bit 0-3 till rätt värde för x-axelns analogingång
     sts     ADMUX, rTemp2
     lds     rTemp2, ADCSRA
     ori     rTemp2, 1 << ADSC
-    sts     ADCSRA, rTemp2
-waitJoyX:
+    sts     ADCSRA, rTemp2      // Sätt bit "ADSC" i ADCSRA till 1 för att starta A/D-omvandlaren
+waitJoyX:                   // Vänta tills A/D-omvandlare är klar (= bit "ADSC" i ADCSRA är 0)
     lds     rTemp2, ADCSRA
-    sbrc    rTemp2, ADSC
-    jmp     waitJoyX // Ovillorligt hopp till waitJoyX
+    sbrc    rTemp2, ADSC    // Hoppa över nästa instruktion om bit "ADSC" i ADCSRA är noll
+    jmp     waitJoyX // Ovillkorligt hopp till waitJoyX
 
+// Uppdatera inte variabeln om joysticken är i neutralt läge (gör att det känns bättre att spela med piltangenterna)
     lds     rTemp2, ADCH
     cpi     rTemp2, 0xe0 // Jämnför rTemp2 med konstanten 224
     brsh    loadJoyX // Hoppar till loadJoyX om rTemp2 är högre eller lika med 224
@@ -123,10 +116,11 @@ loadJoyX:
     mov     rJoyX, rTemp2
     ldi     rJoyY, 0x80
 
+// Y-axel (samma process som för y)
 readJoyY:
 	lds     rTemp2, ADMUX
     andi    rTemp2, 0xf0
-    ori     rTemp2, 0x04
+    ori     rTemp2, 0x04    // Ny analogingång
     sts     ADMUX, rTemp2
     lds     rTemp2, ADCSRA
     ori     rTemp2, 1 << ADSC
@@ -136,6 +130,7 @@ waitJoyY:
     sbrc    rTemp2, ADSC
     jmp     waitJoyY
 
+// Uppdatera inte variabeln om joysticken är i neutralt läge (gör att det känns bättre att spela med piltangenterna)
     lds     rTemp2, ADCH
     cpi     rTemp2, 0xe0
     brsh    loadJoyY
@@ -148,22 +143,22 @@ readJoyDone:
 
 // Kolla om det är dags att uppdatera
     cpi     rUpdate, UPDATE_INTERVAL
-    brlo    loop
-    ldi     rUpdate, 0x00
+    brlo    loop                        // Om nej, loopa för att fortsätta vänta
+    ldi     rUpdate, 0x00               // Om ja, nollställ räknaren
 
 // Flytta huvud
     lds     rX, snakeX
 testLeft:
     cpi     rJoyX, 0xe0
     brlo    testRight
-    cpi     rX, 0x01
+    cpi     rX, 0x01    // Flytta inte utanför kanten på banan
     brlo    testRight
     subi    rX, 1
     jmp     testXDone
 testRight:
     cpi     rJoyX, 0x20
     brsh    testXDone
-    cpi     rX, 0x07
+    cpi     rX, 0x07    // Flytta inte utanför kanten på banan
     brsh    testXDone
     subi    rX, -1
 testXDone:
@@ -172,27 +167,28 @@ testXDone:
 testUp:
     cpi     rJoyY, 0xe0
     brlo    testDown
-    cpi     rY, 0x01
+    cpi     rY, 0x01    // Flytta inte utanför kanten på banan
     brlo    testDown
     subi    rY, 1
     jmp     testYDone
 testDown:
     cpi     rJoyY, 0x20
     brsh    testYDone
-    cpi     rY, 0x07
+    cpi     rY, 0x07    // Flytta inte utanför kanten på banan
     brsh    testYDone
     subi    rY, -1
 testYDone:
 
 // Flytta inte svans om inte huvudet rört på sig
     lds     rTemp2, snakeX
-    cp      rTemp2, rX  // Jämnför rTemp2 med rX
+    cp      rTemp2, rX  // Jämnför rTemp2 (hucudets gamla x) med rX (huvudets nya x)
     brne    moveTail // Hoppar till moveTail om rTemp2 inte är lika med rX
     lds     rTemp2, snakeY
     cp      rTemp2, rY
     breq    moveTailDone // Hoppar till moveTailDone om rTemp2 är lika med rY (om Z bit:en i statusregistret är 1)
 
 // Flytta svans
+// Gå igenom snake-arrayerna bakifrån och flytta ned varje element ett steg
 moveTail:
     ldi     YL, LOW(snakeX + MAX_LENGTH - 2)
     ldi     YH, HIGH(snakeX + MAX_LENGTH - 2)
@@ -212,6 +208,7 @@ tailLoop:
     brlo    tailLoop
 
 moveTailDone:
+// Skriv huvudets nya position till RAM
     sts     snakeX, rX
     sts     snakeY, rY
 
@@ -227,7 +224,8 @@ moveTailDone:
     sts     matrix + 7, rTemp2
 
 // Rita snake
-    lds     rX, snakeX
+// (loopar är överskattade)
+    lds     rX, snakeX  // rX och rY används som argument till drawDot nu
     lds     rY, snakeY
     call    drawDot
 
@@ -243,30 +241,42 @@ moveTailDone:
     lds     rY, snakeY + 3
     call    drawDot
 
+// Klar! Loopa och invänta nästa update
     jmp     loop
 
+//////////////////////////////////////////////
+
 drawDot:
+// Sätter på en viss pixel i matrisen
+// rX = x-position att rita till (förstörs)
+// rY = y-position att rita till (förstörs)
+
+// Beräkna 1 << rX
     ldi     rMask, 0x01
 findXMask:
     cpi     rX, 0x00
-    breq    findXMaskDone
+    breq    findXMaskDone   // Loopa tills rX == 0
     lsl     rMask // Skiftar bit:arna i rMask ett steg åt vänster
     dec     rX
     jmp     findXMask
 findXMaskDone:
 
+// Hitta rätt rad (matrix + rY)
     ldi     YL, LOW(matrix)
     ldi     YH, HIGH(matrix)
     add     YL, rY
 
+// Kombinera 1 << rX med radens gamla värde
     ld      rTemp2, Y
     or      rTemp2, rMask
     st      Y, rTemp2
 
     ret
 
+//////////////////////////////////////////////
+
 timer:
-    in      rStatus, SREG
+    in      rStatus, SREG   // Spara statusregistret så det kan återställas senare
     push    rTemp // Sänker SP och sätter rTemp på toppen av stacken
     
 // Clear all columns
@@ -279,18 +289,19 @@ timer:
     cbi     PORTB, PORTB4
     cbi     PORTB, PORTB5
 
-// Enable correct columns
+// Läs in värdet på rätt rad (matrix + rRow)
     ldi     XL, LOW(matrix)
     ldi     XH, HIGH(matrix)
     add     XL, rRow
 
+// Enable correct columns
     ld      rTemp, X
 testCol0:
-    bst     rTemp, 0 // Kopierar bit 0 i rTemp till bit T i statusregistret
+    bst     rTemp, 0 // Kopierar bit 0 (första kolumnen) i rTemp till bit T i statusregistret
     brtc    testCol1 // Hoppar till testCol1 om T är 0
-    sbi     PORTD, PORTD6
+    sbi     PORTD, PORTD6 // Om T är 1, aktivera första kolumnen i ledmatrisen
 testCol1:
-    bst     rTemp, 1
+    bst     rTemp, 1 // Etc.
     brtc    testCol2
     sbi     PORTD, PORTD7
 testCol2:
@@ -323,13 +334,13 @@ columnsDone:
 testRow0:
     cpi     rRow, 0x00
     brne    testRow1
-    sbi     PORTC, PORTC0
-    cbi     PORTD, PORTD5
+    sbi     PORTC, PORTC0   // Om nuvarande rad är rad 0, sätt på första raden i ledmatrisen...
+    cbi     PORTD, PORTD5   // ...och stäng av föregående rad (sista raden i det här fallet).
     jmp     rowsDone
 testRow1:
     cpi     rRow, 0x01
     brne    testRow2
-    sbi     PORTC, PORTC1
+    sbi     PORTC, PORTC1   // Etc.
     cbi     PORTC, PORTC0
     jmp     rowsDone
 testRow2:
@@ -375,5 +386,5 @@ rowsDone:
 lastRow:
     
     pop     rTemp // Sätter rTemp till elementet i toppen av stacken och ökar SP
-    out     SREG, rStatus
+    out     SREG, rStatus // Återställ statusregistret till vad det var innan avbrottet startade
     reti
