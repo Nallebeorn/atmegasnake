@@ -72,29 +72,25 @@ init:
      // Initialisera variabler
      ldi    rRow, 0x00
 
-     ldi    rJoyX, 0x80     // 128 är neutral joystick-position (hälften av 256)
-     ldi    rJoyY, 0x80
-
-     ldi    rTemp, 0x04         // sätt alla snake-segment till position (4, 4)
-
+	  // sätt alla snake-segment till position (3, 3) "Bättre än Benjamins grupp (4, 4)" -Christoffer
+     ldi    rTemp, 0x03        
      sts    snakeX + 0, rTemp
      sts    snakeY + 0, rTemp
-
      sts    snakeX + 1, rTemp
      sts    snakeY + 1, rTemp
-
      sts    snakeX + 2, rTemp
      sts    snakeY + 2, rTemp
-
      sts    snakeX + 3, rTemp
      sts    snakeY + 3, rTemp
 
-     ldi    rUpdate, 0x00
+	 // Sätt joystickens neutral position (hälften av 256)
+	 ldi    rJoyX, 0x80     
+     ldi    rJoyY, 0x80
 
 	 // Aktivera och konfigurera A/D-omvandling for joystickavläsning
-     ldi    rTemp, 0b01100000
+     ldi    rTemp, 0x60
      sts    ADMUX, rTemp
-     ldi    rTemp, 0b10000111
+     ldi    rTemp, 0x87
      sts    ADCSRA, rTemp
 
      // Aktivera och konfigurera timern
@@ -106,6 +102,8 @@ init:
      ori    rTemp, 0x01
      sts    TIMSK0, rTemp
 
+	  //nollställ räknaren
+	 ldi    rUpdate, 0x00
 loop:
 // A/D-omvandling
 // X-axel
