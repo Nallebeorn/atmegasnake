@@ -1,3 +1,14 @@
+// We should consider renaming some of these and changing the comments to a different structure. -Sebastian
+
+//////////////////////////////
+//       LEDJOY SNAKE       //
+//////////////////////////////
+//        Created by:       //
+//  Christoffer Cederfeldt  //
+//	 Sebastian Alkstrand    //
+//	  Amanda ----------     //
+//////////////////////////////
+
 // Interrupt registers
 .DEF rTemp         = r16
 .DEF rRow          = r17 // Vilken led-rad som ska tändas härnäst
