@@ -136,7 +136,7 @@ L1: dec  r25 //26
     dec  r16 //16
     brne L1
 
-update:
+loop:
 // A/D-omvandling
 // X-axel
 readJoyX:
@@ -159,8 +159,7 @@ waitJoyX:                   // Vänta tills A/D-omvandlare är klar (= bit "ADSC
     cpi     rTemp, 0x20
     brsh    readjoyY
 loadJoyX:
-    mov     rJoyX, rTemp
-    ldi     rJoyY, 0x80
+    lds rJoyX, ADCH
 
 // Y-axel (samma process som för y)
 readJoyY:
@@ -183,13 +182,13 @@ waitJoyY:
     cpi     rTemp, 0x20
     brsh    readJoyDone
 loadJoyY:
-    mov     rJoyY, rTemp
-    ldi     rJoyX, 0x80
+    lds rJoyY, ADCH
+
 readJoyDone:
 
 // Kolla om det är dags att uppdatera
     cpi     rUpdate, TICK_RATE
-    brlo    update                        // Om nej, uppdatera för att fortsätta vänta
+    brlo    loop                        // Om nej, loopa för att fortsätta vänta
     ldi     rUpdate, 0x00               // Om ja, nollställ räknaren
 
 // Flytta huvud
@@ -241,7 +240,7 @@ moveTail:
     ldi     ZL, LOW( snakeY + SNAKE_LENGTH - 2)
     ldi     ZH, HIGH(snakeY + SNAKE_LENGTH - 2)
     ldi     rITemp, 0x00
-tailupdate:
+tailLoop:
     ld      rTemp, Y
     std     Y + 1, rTemp
     ld      rTemp, Z
@@ -251,7 +250,7 @@ tailupdate:
     dec     ZL
     inc     rITemp
     cpi     rITemp, SNAKE_LENGTH - 1
-    brlo    tailupdate
+    brlo    tailLoop
 
 moveTailDone:
 // Skriv huvudets nya position till RAM
@@ -271,6 +270,9 @@ moveTailDone:
 
 // Rita snake
 // (loopar är överskattade)
+	renderSnake:
+	lds rITemp, 0x00
+
     lds     rX, snakeX  // rX och rY används som argument till setPixel nu
     lds     rY, snakeY
     call    setPixel
@@ -287,8 +289,12 @@ moveTailDone:
     lds     rY, snakeY + 3
     call    setPixel
 
-// Klar! loopa och invänta nästa update
-    jmp     update
+	lds     rX, snakeX + 4
+    lds     rY, snakeY + 4
+    call    setPixel
+
+// Klar! Loopa och invänta nästa update
+    jmp     loop
 
 //----------------------------------------------------------------------//
 
@@ -301,7 +307,7 @@ setPixel:
     ldi     rMask, 0x01
 findXMask:
     cpi     rX, 0x00
-    breq    findXMaskDone   // loopa tills rX == 0
+    breq    findXMaskDone   // Loopa tills rX == 0
     lsl     rMask // Skiftar bit:arna i rMask ett steg åt vänster
     dec     rX
     jmp     findXMask
