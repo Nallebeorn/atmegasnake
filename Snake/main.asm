@@ -1,4 +1,3 @@
-// We should consider renaming some of these and changing the comments to a different structure. -Sebastian
 
 //////////////////////////////      
 //       LEDJOY SNAKE       //        ########
@@ -12,17 +11,17 @@
 //////////////////////////////
 
 // Interrupt registers 
-.DEF rStatus       = r3  //Store status register so that it may be restored post  "code-break?"
-.DEF rITemp         = r16
+.DEF rStatus       = r3  // Store status register so that it may be restored post  "code-break?"
+.DEF rITemp        = r16 // Temporary storage of values (Watch out before reads!)
 .DEF rRow          = r17 // LED Row Iterator
 .DEF rUpdate       = r18 // Update gamlogic at TICK_RATE rate
-// Not interrupt registers
-.DEF rJoyX         = r19 // Joystick x-axel
-.DEF rJoyY         = r20 // Joystick y-axel
-.DEF rMask         = r21  //Mask specific bit-values to enable certain LEDs
-.DEF rTemp        = r22
-.DEF rX            = r23 // Argument till setPixel + temporär huvudposition
-.DEF rY            = r24 // -||-
+// Non-interrupt registers
+.DEF rJoyX         = r19 // Joystick X-axis
+.DEF rJoyY         = r20 // Joystick Y-axis
+.DEF rMask         = r21 //Mask specific bit-values to enable certain LEDs
+.DEF rTemp         = r22 // Temporary storage of values (Watch out before reads!)
+.DEF rX            = r23 // Argument for setPixel and temporary position for snake head (Xpos)
+.DEF rY            = r24 // Argument for setPixel and temporary position for snake head (Ypos)
 
 .EQU SNAKE_LENGTH  = 5
 .EQU TICK_RATE	   = 128
@@ -36,95 +35,95 @@ snakeY:   .BYTE SNAKE_LENGTH // Array av y-positioner (första är huvudets y)
 
 .CSEG
 .ORG 0x0000
-     jmp init 
-     jmp 0
-     jmp 0
-     jmp 0
-     jmp 0
-     jmp 0
-     jmp 0
-     jmp 0
-     jmp 0
-     jmp 0
-     jmp 0
-     jmp 0
-     jmp 0
-     jmp 0
-     jmp 0
-     jmp 0
-     jmp timer
+    jmp init 
+    jmp 0
+    jmp 0
+    jmp 0
+    jmp 0
+    jmp 0
+    jmp 0
+    jmp 0
+    jmp 0
+    jmp 0
+    jmp 0
+    jmp 0
+    jmp 0
+    jmp 0
+    jmp 0
+    jmp 0
+    jmp timer
 
 init:
-     // Sätt stackpekaren till högsta minnesadressen
-     ldi	rITemp, HIGH(RAMEND)
-     out	SPH, rITemp
-     ldi	rITemp, LOW(RAMEND)
-     out	SPL, rITemp
+    // Sätt stackpekaren till högsta minnesadressen
+    ldi	rITemp, HIGH(RAMEND)
+    out	SPH, rITemp
+    ldi	rITemp, LOW(RAMEND)
+    out	SPL, rITemp
 
-     // Sätt lamppins till output
-     ldi    rITemp, 0x0f
-     out    DDRC, rITemp
-     ldi    rITemp, 0xfc
-     out    DDRD, rITemp
-     ldi    rITemp, 0x3f
-     out    DDRB, rITemp
+    // Sätt lamppins till output
+    ldi    rITemp, 0x0f
+    out    DDRC, rITemp
+    ldi    rITemp, 0xfc
+    out    DDRD, rITemp
+    ldi    rITemp, 0x3f
+    out    DDRB, rITemp
 
-     // Initialisera variabler
-     ldi    rRow, 0x00
+    // Initialisera variabler
+    ldi    rRow, 0x00
 
-	      // Big Smile
-     ldi    rITemp, 0x00 
-     sts    matrix + 0, rITemp 
-     ldi    rITemp, 0x24 
-     sts    matrix + 1, rITemp 
-     ldi    rITemp, 0x24 
-     sts    matrix + 2, rITemp 
-     ldi    rITemp, 0x00 
-     sts    matrix + 3, rITemp 
+	     // Big Smile
+    ldi    rITemp, 0x00 
+    sts    matrix + 0, rITemp 
+    ldi    rITemp, 0x24 
+    sts    matrix + 1, rITemp 
+    ldi    rITemp, 0x24 
+    sts    matrix + 2, rITemp 
+    ldi    rITemp, 0x00 
+    sts    matrix + 3, rITemp 
  
-     ldi    rITemp, 0x42 
-     sts    matrix + 4, rITemp 
-     ldi    rITemp, 0x3C 
-     sts    matrix + 5, rITemp 
-     ldi    rITemp, 0x0 
-     sts    matrix + 6, rITemp 
-     ldi    rITemp, 0x0 
-     sts    matrix + 7, rITemp 
+    ldi    rITemp, 0x42 
+    sts    matrix + 4, rITemp 
+    ldi    rITemp, 0x3C 
+    sts    matrix + 5, rITemp 
+    ldi    rITemp, 0x0 
+    sts    matrix + 6, rITemp 
+    ldi    rITemp, 0x0 
+    sts    matrix + 7, rITemp 
 
-	  // sätt alla snake-segment till position (3, 3) "Bättre än Benjamins grupp (4, 4)" -Christoffer
-     ldi    rITemp, 0x03        
-     sts    snakeX + 0, rITemp
-     sts    snakeY + 0, rITemp
-     sts    snakeX + 1, rITemp
-     sts    snakeY + 1, rITemp
-     sts    snakeX + 2, rITemp
-     sts    snakeY + 2, rITemp
-     sts    snakeX + 3, rITemp
-     sts    snakeY + 3, rITemp
-	 sts    snakeX + 4, rITemp
-     sts    snakeY + 4, rITemp
+	 // sätt alla snake-segment till position (3, 3) "Bättre än Benjamins grupp (4, 4)" -Christoffer
+    ldi    rITemp, 0x03        
+    sts    snakeX + 0, rITemp
+    sts    snakeY + 0, rITemp
+    sts    snakeX + 1, rITemp
+    sts    snakeY + 1, rITemp
+    sts    snakeX + 2, rITemp
+    sts    snakeY + 2, rITemp
+    sts    snakeX + 3, rITemp
+    sts    snakeY + 3, rITemp
+	sts    snakeX + 4, rITemp
+    sts    snakeY + 4, rITemp
 
-	 // Sätt joystickens neutral position (hälften av 256)
-	 ldi    rJoyX, 0x80     
-     ldi    rJoyY, 0x80
+	// Sätt joystickens neutral position (hälften av 256)
+	ldi    rJoyX, 0x80     
+    ldi    rJoyY, 0x80
 
-	 // Aktivera och konfigurera A/D-omvandling for joystickavläsning
-     ldi    rITemp, 0x60
-     sts    ADMUX, rITemp
-     ldi    rITemp, 0x87
-     sts    ADCSRA, rITemp
+	// Aktivera och konfigurera A/D-omvandling for joystickavläsning
+    ldi    rITemp, 0x60
+    sts    ADMUX, rITemp
+    ldi    rITemp, 0x87
+    sts    ADCSRA, rITemp
 
-     // Aktivera och konfigurera timern
-     lds    rITemp, TCCR0B
-     ori    rITemp, 0x02
-     out    TCCR0B, rITemp
-     sei
-     lds    rITemp, TIMSK0
-     ori    rITemp, 0x01
-     sts    TIMSK0, rITemp
+    // Aktivera och konfigurera timern
+    lds    rITemp, TCCR0B
+    ori    rITemp, 0x02
+    out    TCCR0B, rITemp
+    sei
+    lds    rITemp, TIMSK0
+    ori    rITemp, 0x01
+    sts    TIMSK0, rITemp
 
-	  //nollställ räknaren
-	 ldi    rUpdate, 0x00
+	//nollställ räknaren
+	ldi    rUpdate, 0x00
 	 
 	// This part waits for 1 second. Based on "http://www.bretmulvey.com/avrdelay.html"
 	ldi  r16, 41 //16
