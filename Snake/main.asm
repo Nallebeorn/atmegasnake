@@ -1,4 +1,3 @@
-// We should consider renaming some of these and changing the comments to a different structure. -Sebastian
 
 //////////////////////////////      
 //       LEDJOY SNAKE       //        ########
@@ -83,14 +82,14 @@ init:
     ldi    rITemp, 0x00 
     sts    matrix + 3, rITemp 
  
-     ldi    rITemp, 0x42 
-     sts    matrix + 4, rITemp 
-     ldi    rITemp, 0x3C 
-     sts    matrix + 5, rITemp 
-     ldi    rITemp, 0x0 
-     sts    matrix + 6, rITemp 
-     ldi    rITemp, 0x0 
-     sts    matrix + 7, rITemp 
+    ldi    rITemp, 0x42 
+    sts    matrix + 4, rITemp 
+    ldi    rITemp, 0x3C 
+    sts    matrix + 5, rITemp 
+    ldi    rITemp, 0x0 
+    sts    matrix + 6, rITemp 
+    ldi    rITemp, 0x0 
+    sts    matrix + 7, rITemp 
 
 	 // Set the snake to 3, 3 to center the player (can't center it since it's an even number of LEDs) -Sebastian
     ldi    rITemp, 0x03        
@@ -109,23 +108,23 @@ init:
 	ldi    rJoyX, 0x80     
     ldi    rJoyY, 0x80
 
-	 // Aktivera och konfigurera A/D-omvandling for joystickavläsning
-     ldi    rITemp, 0x60
-     sts    ADMUX, rITemp
-     ldi    rITemp, 0x87
-     sts    ADCSRA, rITemp
+	// Init an config of the Analogue to Digital converter for the joystick
+    ldi    rITemp, 0x60
+    sts    ADMUX, rITemp
+    ldi    rITemp, 0x87
+    sts    ADCSRA, rITemp
 
-     // Aktivera och konfigurera timern
-     lds    rITemp, TCCR0B
-     ori    rITemp, 0x02
-     out    TCCR0B, rITemp
-     sei
-     lds    rITemp, TIMSK0
-     ori    rITemp, 0x01
-     sts    TIMSK0, rITemp
+    // Timer setup
+    lds    rITemp, TCCR0B
+    ori    rITemp, 0x02
+    out    TCCR0B, rITemp
+    sei
+    lds    rITemp, TIMSK0
+    ori    rITemp, 0x01
+    sts    TIMSK0, rITemp
 
-	  //nollställ räknaren
-	 ldi    rUpdate, 0x00
+	// Reset the update counter
+	ldi    rUpdate, 0x00
 	 
 	// This part waits for 1 second. Based on "http://www.bretmulvey.com/avrdelay.html"
 	ldi  r16, 41 //16
@@ -139,22 +138,21 @@ L1: dec  r25 //26
     brne L1
 
 loop:
-// A/D-omvandling
-// X-axel
+// X-AXIS
 readJoyX:
-	lds     rTemp, ADMUX   // ADMUX använd för att välja rätt analogingång
-    andi    rTemp, 0xf0    // Sätt bit 0-3 till 0
-    ori     rTemp, 0x05    // Sätt bit 0-3 till rätt värde för x-axelns analogingång
+	lds     rTemp, ADMUX		// Using ADMUX to get the right input
+    andi    rTemp, 0xf0			// Set bit 0-3 to 0 ("Thanks Benny!")
+    ori     rTemp, 0x05			// Set bit 0-3 to the right value for the X-Axis
     sts     ADMUX, rTemp
     lds     rTemp, ADCSRA
     ori     rTemp, 1 << ADSC
-    sts     ADCSRA, rTemp      // Sätt bit "ADSC" i ADCSRA till 1 för att starta A/D-omvandlaren
-waitJoyX:                   // Vänta tills A/D-omvandlare är klar (= bit "ADSC" i ADCSRA är 0)
+    sts     ADCSRA, rTemp		// Set "ADSC" to 1 to start analogue to digital converter
+waitJoyX:						// When analogue to digital converter is done ("ADSC" = 0)
     lds     rTemp, ADCSRA
-    sbrc    rTemp, ADSC    // Hoppa över nästa instruktion om bit "ADSC" i ADCSRA är noll
-    jmp     waitJoyX // Ovillkorligt hopp till waitJoyX
+    sbrc    rTemp, ADSC			// Skip instruction if "ADSC" is 0
+    jmp     waitJoyX			// Jump to waitJoyX!
 
-// Uppdatera inte variabeln om joysticken är i neutralt läge (gör att det känns bättre att spela med piltangenterna)
+// Don't update direction if joystick is in neutral pos!
     lds     rTemp, ADCH
     cpi     rTemp, 0xe0 // Jämnför rTemp med konstanten 224
     brsh    loadJoyX // Hoppar till loadJoyX om rTemp är högre eller lika med 224
@@ -164,11 +162,11 @@ loadJoyX:
     mov     rJoyX, rTemp
     ldi     rJoyY, 0x80
 
-// Y-axel (samma process som för y)
+// Y-AXIS
 readJoyY:
 	lds     rTemp, ADMUX
     andi    rTemp, 0xf0
-    ori     rTemp, 0x04    // Ny analogingång
+    ori     rTemp, 0x04
     sts     ADMUX, rTemp
     lds     rTemp, ADCSRA
     ori     rTemp, 1 << ADSC
@@ -178,7 +176,7 @@ waitJoyY:
     sbrc    rTemp, ADSC
     jmp     waitJoyY
 
-// Uppdatera inte variabeln om joysticken är i neutralt läge (gör att det känns bättre att spela med piltangenterna)
+// Don't update direction if joystick is in neutral pos!
     lds     rTemp, ADCH
     cpi     rTemp, 0xe0
     brsh    loadJoyY
@@ -187,63 +185,64 @@ waitJoyY:
 loadJoyY:
     mov     rJoyY, rTemp
     ldi     rJoyX, 0x80
+
 readJoyDone:
+// VIBE CHECK (Actually just an update check!)
+    cpi     rUpdate, TICK_RATE			// check if update timer has reached the TICK_RATE!
+    brlo    loop                        // loop again to wait another tick if not
+    ldi     rUpdate, 0x00               // reset counter if true
 
-// Kolla om det är dags att uppdatera
-    cpi     rUpdate, TICK_RATE
-    brlo    loop                        // Om nej, loopa för att fortsätta vänta
-    ldi     rUpdate, 0x00               // Om ja, nollställ räknaren
-
-// Flytta huvud
+// Move the first snake part!
     lds     rX, snakeX
-testLeft:
+goL:
     cpi     rJoyX, 0xe0
-    brlo    testRight
-    cpi     rX, 0x01    // Flytta inte utanför kanten på banan
-    brlo    testRight
+    brlo    goR
+    cpi     rX, 0x01    // CHECK FOR WORLD END!!!
+    brlo    goR
     subi    rX, 1
-    jmp     testXDone
-testRight:
+    jmp     finishedX
+goR:
     cpi     rJoyX, 0x20
-    brsh    testXDone
-    cpi     rX, 0x07    // Flytta inte utanför kanten på banan
-    brsh    testXDone
+    brsh    finishedX
+    cpi     rX, 0x07    // CHECK FOR WORLD END!!!
+    brsh    finishedX
     subi    rX, -1
-testXDone:
 
+finishedX:
     lds     rY, snakeY
-testUp:
+
+goU:
     cpi     rJoyY, 0xe0
-    brlo    testDown
-    cpi     rY, 0x01    // Flytta inte utanför kanten på banan
-    brlo    testDown
+    brlo    goD
+    cpi     rY, 0x01    // CHECK FOR WORLD END!!!
+    brlo    goD
     subi    rY, 1
-    jmp     testYDone
-testDown:
+    jmp     finishedY
+goD:
     cpi     rJoyY, 0x20
-    brsh    testYDone
-    cpi     rY, 0x07    // Flytta inte utanför kanten på banan
-    brsh    testYDone
+    brsh    finishedY
+    cpi     rY, 0x07    // CHECK FOR WORLD END!!!
+    brsh    finishedY
     subi    rY, -1
-testYDone:
+finishedY:
 
-// Flytta inte svans om inte huvudet rört på sig
+// If head did not update position, skip moving body!
     lds     rTemp, snakeX
-    cp      rTemp, rX  // Jämnför rTemp (huvudets gamla x) med rX (huvudets nya x)
-    brne    moveTail // Hoppar till moveTail om rTemp inte är lika med rX
-    lds     rTemp, snakeY
-    cp      rTemp, rY
-    breq    moveTailDone // Hoppar till moveTailDone om rTemp är lika med rY (om Z bit:en i statusregistret är 1)
+    cp      rTemp, rX		// compare the old X with new X
+    brne    moveBody		// move body if not equal!
+    lds     rTemp, snakeY	
+    cp      rTemp, rY		// compare the old Y with new Y
+    breq    moveBodyDone	// jumps to moveBodyDone if old Y and new Y is equal. Else it falls down into moveBody!
 
-// Flytta svans
-// Gå igenom snake-arrayerna bakifrån och flytta ned varje element ett steg
-moveTail:
+// Move the rest of the snake!
+// Iterate snake body array to move snake!
+moveBody:
     ldi     YL, LOW( snakeX + SNAKE_LENGTH - 2)
     ldi     YH, HIGH(snakeX + SNAKE_LENGTH - 2)
     ldi     ZL, LOW( snakeY + SNAKE_LENGTH - 2)
     ldi     ZH, HIGH(snakeY + SNAKE_LENGTH - 2)
     ldi     rITemp, 0x00
-tailLoop:
+iterateBody:
     ld      rTemp, Y
     std     Y + 1, rTemp
     ld      rTemp, Z
@@ -253,9 +252,9 @@ tailLoop:
     dec     ZL
     inc     rITemp
     cpi     rITemp, SNAKE_LENGTH - 1
-    brlo    tailLoop
+    brlo    iterateBody
 
-moveTailDone:
+moveBodyDone:
 // Skriv huvudets nya position till RAM
     sts     snakeX, rX
     sts     snakeY, rY
