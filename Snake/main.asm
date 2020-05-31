@@ -3,10 +3,10 @@
 //////////////////////////////
 //       LEDJOY SNAKE       //
 //////////////////////////////
-//        Created by:       //
+//       Created  by:       //
 //  Christoffer Cederfeldt  //
-//	 Sebastian Alkstrand    //
-//	  Amanda ----------     //
+//	 Sebastian  Alkstrand   //
+//	  Amanda  Lindqvist     //
 //////////////////////////////
 
 // Interrupt registers
