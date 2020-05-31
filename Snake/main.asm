@@ -181,7 +181,7 @@ testYDone:
 
 // Flytta inte svans om inte huvudet rört på sig
     lds     rTemp2, snakeX
-    cp      rTemp2, rX  // Jämnför rTemp2 (hucudets gamla x) med rX (huvudets nya x)
+    cp      rTemp2, rX  // Jämnför rTemp2 (huvudets gamla x) med rX (huvudets nya x)
     brne    moveTail // Hoppar till moveTail om rTemp2 inte är lika med rX
     lds     rTemp2, snakeY
     cp      rTemp2, rY
