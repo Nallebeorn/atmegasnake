@@ -31,10 +31,11 @@
 .DSEG
 
 matrix:   .BYTE 8            // Each byte represents a row. MSB represents kolumns to the right and LSB represents those to the left.
-snakeX:   .BYTE SNAKE_LENGTH // x-Positions (första är huvudets x)
-snakeY:   .BYTE SNAKE_LENGTH // Array av y-positioner (första är huvudets y)
+snakeX:   .BYTE SNAKE_LENGTH // Array of the X-Positions
+snakeY:   .BYTE SNAKE_LENGTH // Array of the Y-Positions
 
 .CSEG
+//Interrupt vector table (from school material!)
 .ORG 0x0000
      jmp init 
      jmp 0
@@ -55,32 +56,32 @@ snakeY:   .BYTE SNAKE_LENGTH // Array av y-positioner (första är huvudets y)
      jmp timer
 
 init:
-     // Sätt stackpekaren till högsta minnesadressen
-     ldi	rITemp, HIGH(RAMEND)
-     out	SPH, rITemp
-     ldi	rITemp, LOW(RAMEND)
-     out	SPL, rITemp
+    // Set the stack pointer to the highest memAdress
+    ldi	rITemp, HIGH(RAMEND)
+    out	SPH, rITemp
+    ldi	rITemp, LOW(RAMEND)
+    out	SPL, rITemp
 
-     // Sätt lamppins till output
-     ldi    rITemp, 0x0f
-     out    DDRC, rITemp
-     ldi    rITemp, 0xfc
-     out    DDRD, rITemp
-     ldi    rITemp, 0x3f
-     out    DDRB, rITemp
+    // Set the LED pins to OUTPUT
+    ldi    rITemp, 0x0f
+    out    DDRC, rITemp
+    ldi    rITemp, 0xfc
+    out    DDRD, rITemp
+    ldi    rITemp, 0x3f
+    out    DDRB, rITemp
 
-     // Initialisera variabler
-     ldi    rRow, 0x00
+    // Init rRow!
+    ldi    rRow, 0x00
 
-	      // Big Smile
-     ldi    rITemp, 0x00 
-     sts    matrix + 0, rITemp 
-     ldi    rITemp, 0x24 
-     sts    matrix + 1, rITemp 
-     ldi    rITemp, 0x24 
-     sts    matrix + 2, rITemp 
-     ldi    rITemp, 0x00 
-     sts    matrix + 3, rITemp 
+	// Big Smile for a cool start!
+    ldi    rITemp, 0x00 
+    sts    matrix + 0, rITemp 
+    ldi    rITemp, 0x24 
+    sts    matrix + 1, rITemp 
+    ldi    rITemp, 0x24 
+    sts    matrix + 2, rITemp 
+    ldi    rITemp, 0x00 
+    sts    matrix + 3, rITemp 
  
      ldi    rITemp, 0x42 
      sts    matrix + 4, rITemp 
@@ -91,22 +92,22 @@ init:
      ldi    rITemp, 0x0 
      sts    matrix + 7, rITemp 
 
-	  // sätt alla snake-segment till position (3, 3) "Bättre än Benjamins grupp (4, 4)" -Christoffer
-     ldi    rITemp, 0x03        
-     sts    snakeX + 0, rITemp
-     sts    snakeY + 0, rITemp
-     sts    snakeX + 1, rITemp
-     sts    snakeY + 1, rITemp
-     sts    snakeX + 2, rITemp
-     sts    snakeY + 2, rITemp
-     sts    snakeX + 3, rITemp
-     sts    snakeY + 3, rITemp
-	 sts    snakeX + 4, rITemp
-     sts    snakeY + 4, rITemp
+	 // Set the snake to 3, 3 to center the player (can't center it since it's an even number of LEDs) -Sebastian
+    ldi    rITemp, 0x03        
+    sts    snakeX + 0, rITemp
+    sts    snakeY + 0, rITemp
+    sts    snakeX + 1, rITemp
+    sts    snakeY + 1, rITemp
+    sts    snakeX + 2, rITemp
+    sts    snakeY + 2, rITemp
+    sts    snakeX + 3, rITemp
+    sts    snakeY + 3, rITemp
+	sts    snakeX + 4, rITemp
+    sts    snakeY + 4, rITemp
 
-	 // Sätt joystickens neutral position (hälften av 256)
-	 ldi    rJoyX, 0x80     
-     ldi    rJoyY, 0x80
+	// Set the Joystick to a middle position (128 to be extra cool)
+	ldi    rJoyX, 0x80     
+    ldi    rJoyY, 0x80
 
 	 // Aktivera och konfigurera A/D-omvandling for joystickavläsning
      ldi    rITemp, 0x60
