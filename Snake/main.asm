@@ -271,42 +271,31 @@ moveBodyDone:
 
 	//Render Snake
 
-	ldi rITemp, 0x00	
-	ldi Y, snakeY
-	ldi Z, snakeX
+	ldi		rITemp, 0x00	
+	ldi     YL, LOW(snakeY)
+    ldi     YH, HIGH(snakeY)
+	ldi		ZL, LOW(snakeX)
+    ldi     ZH, HIGH(snakeX)
 	renderSnake:
 
-	lds  rITemp, Z
+	ld  rX, Z
+	ld  rY, Y
 
-
-	lds  rITemp, Y
-	
-
-	
+	//setPixel modifies YL and YH so we push them to the stack for later modification
+	push YL
+	push YH
 
     call	setPixel
-	inc Z
-	inc Y
+
+	//here we pull YL and YH from the stack to increment
+	pop	YH
+	pop YL
+	//increment these suckers!
+	inc ZL
+	inc YL
 	inc	rITemp
 	cpi	rITemp,  SNAKE_LENGTH
 	brne renderSnake
-
-	/*
-    lds     rX, snakeX + 1
-    lds     rY, snakeY + 1
-    call    setPixel
-
-    lds     rX, snakeX + 2
-    lds     rY, snakeY + 2
-    call    setPixel
-
-    lds     rX, snakeX + 3
-    lds     rY, snakeY + 3
-    call    setPixel
-
-	lds     rX, snakeX + 4
-    lds     rY, snakeY + 4
-    call    setPixel*/
 	
 // Wait for next Update
     jmp     loop
