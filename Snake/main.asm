@@ -334,6 +334,17 @@ timer:
     cbi     PORTB, PORTB4
     cbi     PORTB, PORTB5
 
+// Clear all row:s
+	cbi     PORTD, PORTD5
+    cbi     PORTC, PORTC0
+    cbi     PORTC, PORTC1
+    cbi     PORTC, PORTC2
+    cbi     PORTC, PORTC3
+    cbi     PORTD, PORTD2
+    cbi     PORTD, PORTD3
+    cbi     PORTD, PORTD4
+
+
 // Läs in värdet på rätt rad (matrix + rRow)
     ldi     XL, LOW(matrix)
     ldi     XH, HIGH(matrix)
@@ -342,12 +353,13 @@ timer:
 // Enable correct columns
     ld      rTemp, X
 
+//Check all columns for which should be active during this frame
 col0:
-    bst     rTemp, 0 // Kopierar bit 0 (första kolumnen) i rTemp till bit T i statusregistret
-    brtc    col1 // Hoppar till testCol1 om T är 0
-    sbi     PORTD, PORTD6 // Om T är 1, aktivera första kolumnen i ledmatrisen
+    bst     rTemp, 0 // Take bit 0 from rTemp and set it to bit T in the statusReg
+    brtc    col1 // Go to col1 if bit 0 is 0
+    sbi     PORTD, PORTD6 // else set this col active and fall down to col1 to continue
 col1:
-    bst     rTemp, 1 // Etc.
+    bst     rTemp, 1 // the same as col0, repeated for all columns
     brtc    col2
     sbi     PORTD, PORTD7
 col2:
@@ -403,39 +415,32 @@ rowJmpTable:
     breq    row7
 
 row0:
-    sbi     PORTC, PORTC0   // Om nuvarande rad är rad 0, sätt på första raden i ledmatrisen...
-    cbi     PORTD, PORTD5   // ...och stäng av föregående rad (sista raden i det här fallet).
+    sbi     PORTC, PORTC0   // Activate Row 0
     jmp     rowsDone
 row1:
-    sbi     PORTC, PORTC1   // Etc.
-    cbi     PORTC, PORTC0
+    sbi     PORTC, PORTC1   // Activate Row 1 etc...
     jmp     rowsDone
 row2:
     sbi     PORTC, PORTC2
-    cbi     PORTC, PORTC1
     jmp     rowsDone
 row3:
     sbi     PORTC, PORTC3
-    cbi     PORTC, PORTC2
     jmp     rowsDone
 row4:
     sbi     PORTD, PORTD2
-    cbi     PORTC, PORTC3
     jmp     rowsDone
 row5:
     sbi     PORTD, PORTD3
-    cbi     PORTD, PORTD2
     jmp     rowsDone
 row6:
     sbi     PORTD, PORTD4
-    cbi     PORTD, PORTD3
     jmp     rowsDone
 row7:
     sbi     PORTD, PORTD5
-    cbi     PORTD, PORTD4
     ldi     rRow, 0x00
     inc     rUpdate
     jmp     lastRow
+
 
 rowsDone:
     inc     rRow
