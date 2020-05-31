@@ -124,7 +124,7 @@ init:
 	  //nollställ räknaren
 	 ldi    rUpdate, 0x00
 	 
-	 //WAIT!! BIG SMILE AHEAD
+	// This part waits for 1 second. Based on "http://www.bretmulvey.com/avrdelay.html"
 	ldi  r16, 41 //16
     ldi  r22, 150 //22
     ldi  r25, 128 //26
