@@ -5,7 +5,7 @@
 //////////////////////////////      ##__####__##
 //                          //      #|  |##|  |#
 //       Created  by:       //      #####uu#####
-//  Christoffer Cederfeldt  //         ########
+//  Christoffer Cederfeldt  //        ########
 //	 Sebastian  Alkstrand   //         |||| |
 //	   Amanda Lindqvist     //         ######
 //							//
@@ -24,7 +24,6 @@
 .DEF rX            = r23 // Argument till setPixel + temporär huvudposition
 .DEF rY            = r24 // -||-
 
-.EQU NUM_COLUMNS   = 8   // This variable does not seem to be used in the code? -Sebastian
 .EQU SNAKE_LENGTH  = 4
 .EQU TICK_RATE	   = 128
 
