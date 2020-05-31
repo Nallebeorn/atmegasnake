@@ -13,7 +13,7 @@
 .DEF rTemp         = r16
 .DEF rRow          = r17 // Vilken led-rad som ska tändas härnäst
 .DEF rStatus       = r3  // Lagra statusregister så de kan återställas efter avbrottet
-.DEF rUpdate       = r22 // Räknar upp (till UPDATE_INTERVAL) tills det är dags att uppdatera spellogiken
+.DEF rUpdate       = r22 // Räknar upp (till TICK_RATE) tills det är dags att uppdatera spellogiken
 // Not interrupt registers
 .DEF rTemp2        = r18
 .DEF rJoyX         = r19 // Joystick x-axel
@@ -22,16 +22,16 @@
 .DEF rX            = r24 // Argument till drawDot + temporär huvudposition
 .DEF rY            = r25 // -||-
 
-.EQU NUM_COLUMNS   = 8
-.EQU MAX_LENGTH    = 4
-.EQU UPDATE_INTERVAL = 128
+.EQU NUM_COLUMNS   = 8   // This variable does not seem to be used in the code? -Sebastian
+.EQU SNAKE_LENGTH  = 4
+.EQU TICK_RATE	   = 128
 
 
 .DSEG
 
-matrix:   .BYTE 8          // Varje byte är en rad. MSB = kolumn längst till höger. LSB = kolumn längst till vänster.
-snakeX:   .BYTE MAX_LENGTH // Array av x-positioner (första är huvudets x)
-snakeY:   .BYTE MAX_LENGTH // Array av y-positioner (första är huvudets y)
+matrix:   .BYTE 8            // Varje byte är en rad. MSB = kolumn längst till höger. LSB = kolumn längst till vänster.
+snakeX:   .BYTE SNAKE_LENGTH // Array av x-positioner (första är huvudets x)
+snakeY:   .BYTE SNAKE_LENGTH // Array av y-positioner (första är huvudets y)
 
 .CSEG
 // Interrupt vector table
@@ -153,7 +153,7 @@ loadJoyY:
 readJoyDone:
 
 // Kolla om det är dags att uppdatera
-    cpi     rUpdate, UPDATE_INTERVAL
+    cpi     rUpdate, TICK_RATE
     brlo    loop                        // Om nej, loopa för att fortsätta vänta
     ldi     rUpdate, 0x00               // Om ja, nollställ räknaren
 
@@ -201,10 +201,10 @@ testYDone:
 // Flytta svans
 // Gå igenom snake-arrayerna bakifrån och flytta ned varje element ett steg
 moveTail:
-    ldi     YL, LOW(snakeX + MAX_LENGTH - 2)
-    ldi     YH, HIGH(snakeX + MAX_LENGTH - 2)
-    ldi     ZL, LOW(snakeY + MAX_LENGTH - 2)
-    ldi     ZH, HIGH(snakeY + MAX_LENGTH - 2)
+    ldi     YL, LOW( snakeX + SNAKE_LENGTH - 2)
+    ldi     YH, HIGH(snakeX + SNAKE_LENGTH - 2)
+    ldi     ZL, LOW( snakeY + SNAKE_LENGTH - 2)
+    ldi     ZH, HIGH(snakeY + SNAKE_LENGTH - 2)
     ldi     rTemp, 0x00
 tailLoop:
     ld      rTemp2, Y
@@ -215,7 +215,7 @@ tailLoop:
     dec     YL
     dec     ZL
     inc     rTemp
-    cpi     rTemp, MAX_LENGTH - 1
+    cpi     rTemp, SNAKE_LENGTH - 1
     brlo    tailLoop
 
 moveTailDone:
