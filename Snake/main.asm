@@ -346,45 +346,57 @@ testCol7:
 columnsDone:
 
 // Enable correct row
-testRow0:
+rowJmpTable:
+	//Row0
     cpi     rRow, 0x00
-    brne    testRow1
+    breq    testRow0
+	//Row1
+    cpi     rRow, 0x01
+    breq    testRow1
+	//Row2
+    cpi     rRow, 0x02
+    breq    testRow2
+	//Row3
+	cpi     rRow, 0x03
+    breq    testRow3
+	//Row4
+	cpi     rRow, 0x04
+    breq    testRow4
+	//Row5
+	cpi     rRow, 0x05
+    breq    testRow5
+	//Row6
+	cpi     rRow, 0x06
+    breq    testRow6
+	//Row7
+	cpi     rRow, 0x07
+    breq    testRow7
+
+testRow0:
     sbi     PORTC, PORTC0   // Om nuvarande rad är rad 0, sätt på första raden i ledmatrisen...
     cbi     PORTD, PORTD5   // ...och stäng av föregående rad (sista raden i det här fallet).
     jmp     rowsDone
 testRow1:
-    cpi     rRow, 0x01
-    brne    testRow2
     sbi     PORTC, PORTC1   // Etc.
     cbi     PORTC, PORTC0
     jmp     rowsDone
 testRow2:
-    cpi     rRow, 0x02
-    brne    testRow3
     sbi     PORTC, PORTC2
     cbi     PORTC, PORTC1
     jmp     rowsDone
 testRow3:
-    cpi     rRow, 0x03
-    brne    testRow4
     sbi     PORTC, PORTC3
     cbi     PORTC, PORTC2
     jmp     rowsDone
 testRow4:
-    cpi     rRow, 0x04
-    brne    testRow5
     sbi     PORTD, PORTD2
     cbi     PORTC, PORTC3
     jmp     rowsDone
 testRow5:
-    cpi     rRow, 0x05
-    brne    testRow6
     sbi     PORTD, PORTD3
     cbi     PORTD, PORTD2
     jmp     rowsDone
 testRow6:
-    cpi     rRow, 0x06
-    brne    testRow7
     sbi     PORTD, PORTD4
     cbi     PORTD, PORTD3
     jmp     rowsDone
