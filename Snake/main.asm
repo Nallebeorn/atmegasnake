@@ -30,14 +30,13 @@
 
 .DSEG
 
-matrix:   .BYTE 8            // Varje byte är en rad. MSB = kolumn längst till höger. LSB = kolumn längst till vänster.
+matrix:   .BYTE 8            // Varje byte representerar en rad. MSB är kolumn längst till höger och LSB är kolumn längst till vänster.
 snakeX:   .BYTE SNAKE_LENGTH // Array av x-positioner (första är huvudets x)
 snakeY:   .BYTE SNAKE_LENGTH // Array av y-positioner (första är huvudets y)
 
 .CSEG
-// Interrupt vector table
 .ORG 0x0000
-     jmp init  // Reset
+     jmp init 
      jmp 0
      jmp 0
      jmp 0
@@ -53,7 +52,7 @@ snakeY:   .BYTE SNAKE_LENGTH // Array av y-positioner (första är huvudets y)
      jmp 0
      jmp 0
      jmp 0
-     jmp timer  // Timer 0 overflow
+     jmp timer
 
 init:
      // Sätt stackpekaren till högsta minnesadressen
