@@ -18,8 +18,8 @@
 .DEF rTemp2        = r18
 .DEF rJoyX         = r19 // Joystick x-axel
 .DEF rJoyY         = r20 // Joystick y-axel
-.DEF rMask         = r21 // Används i drawDot, värdet på en matrisrad för att tända en viss pixel i raden
-.DEF rX            = r24 // Argument till drawDot + temporär huvudposition
+.DEF rMask         = r21 // Används i setPixel, värdet på en matrisrad för att tända en viss pixel i raden
+.DEF rX            = r24 // Argument till setPixel + temporär huvudposition
 .DEF rY            = r25 // -||-
 
 .EQU NUM_COLUMNS   = 8   // This variable does not seem to be used in the code? -Sebastian
@@ -240,28 +240,28 @@ moveTailDone:
 
 // Rita snake
 // (loopar är överskattade)
-    lds     rX, snakeX  // rX och rY används som argument till drawDot nu
+    lds     rX, snakeX  // rX och rY används som argument till setPixel nu
     lds     rY, snakeY
-    call    drawDot
+    call    setPixel
 
     lds     rX, snakeX + 1
     lds     rY, snakeY + 1
-    call    drawDot
+    call    setPixel
 
     lds     rX, snakeX + 2
     lds     rY, snakeY + 2
-    call    drawDot
+    call    setPixel
 
     lds     rX, snakeX + 3
     lds     rY, snakeY + 3
-    call    drawDot
+    call    setPixel
 
 // Klar! Loopa och invänta nästa update
     jmp     loop
 
 //////////////////////////////////////////////
 
-drawDot:
+setPixel:
 // Sätter på en viss pixel i matrisen
 // rX = x-position att rita till (förstörs)
 // rY = y-position att rita till (förstörs)
@@ -294,7 +294,7 @@ timer:
     in      rStatus, SREG   // Spara statusregistret så det kan återställas senare
     push    rTemp // Sänker SP och sätter rTemp på toppen av stacken
     
-// Clear all columns
+// Clear all col:s
     cbi     PORTD, PORTD6
     cbi     PORTD, PORTD7
     cbi     PORTB, PORTB0
@@ -311,96 +311,96 @@ timer:
 
 // Enable correct columns
     ld      rTemp, X
-testCol0:
+
+col0:
     bst     rTemp, 0 // Kopierar bit 0 (första kolumnen) i rTemp till bit T i statusregistret
-    brtc    testCol1 // Hoppar till testCol1 om T är 0
+    brtc    col1 // Hoppar till testCol1 om T är 0
     sbi     PORTD, PORTD6 // Om T är 1, aktivera första kolumnen i ledmatrisen
-testCol1:
+col1:
     bst     rTemp, 1 // Etc.
-    brtc    testCol2
+    brtc    col2
     sbi     PORTD, PORTD7
-testCol2:
+col2:
     bst     rTemp, 2
-    brtc    testCol3
+    brtc    col3
     sbi     PORTB, PORTB0
-testCol3:
+col3:
     bst     rTemp, 3
-    brtc    testCol4
+    brtc    col4
     sbi     PORTB, PORTB1
-testCol4:
+col4:
     bst     rTemp, 4
-    brtc    testCol5
+    brtc    col5
     sbi     PORTB, PORTB2
-testCol5:
+col5:
     bst     rTemp, 5
-    brtc    testCol6
+    brtc    col6
     sbi     PORTB, PORTB3
-testCol6:
+col6:
     bst     rTemp, 6
-    brtc    testCol7
+    brtc    col7
     sbi     PORTB, PORTB4
-testCol7:
+col7:
     bst     rTemp, 7
-    brtc    columnsDone
+    brtc    rowJmpTable
     sbi     PORTB, PORTB5
-columnsDone:
 
-// Enable correct row
+// Jump to the desired row based on rRow
 rowJmpTable:
-	//Row0
+	//row0
     cpi     rRow, 0x00
-    breq    testRow0
-	//Row1
+    breq    row0
+	//row1
     cpi     rRow, 0x01
-    breq    testRow1
-	//Row2
+    breq    row1
+	//row2
     cpi     rRow, 0x02
-    breq    testRow2
-	//Row3
+    breq    row2
+	//row3
 	cpi     rRow, 0x03
-    breq    testRow3
-	//Row4
+    breq    row3
+	//row4
 	cpi     rRow, 0x04
-    breq    testRow4
-	//Row5
+    breq    row4
+	//row5
 	cpi     rRow, 0x05
-    breq    testRow5
-	//Row6
+    breq    row5
+	//row6
 	cpi     rRow, 0x06
-    breq    testRow6
-	//Row7
+    breq    row6
+	//row7
 	cpi     rRow, 0x07
-    breq    testRow7
+    breq    row7
 
-testRow0:
+row0:
     sbi     PORTC, PORTC0   // Om nuvarande rad är rad 0, sätt på första raden i ledmatrisen...
     cbi     PORTD, PORTD5   // ...och stäng av föregående rad (sista raden i det här fallet).
     jmp     rowsDone
-testRow1:
+row1:
     sbi     PORTC, PORTC1   // Etc.
     cbi     PORTC, PORTC0
     jmp     rowsDone
-testRow2:
+row2:
     sbi     PORTC, PORTC2
     cbi     PORTC, PORTC1
     jmp     rowsDone
-testRow3:
+row3:
     sbi     PORTC, PORTC3
     cbi     PORTC, PORTC2
     jmp     rowsDone
-testRow4:
+row4:
     sbi     PORTD, PORTD2
     cbi     PORTC, PORTC3
     jmp     rowsDone
-testRow5:
+row5:
     sbi     PORTD, PORTD3
     cbi     PORTD, PORTD2
     jmp     rowsDone
-testRow6:
+row6:
     sbi     PORTD, PORTD4
     cbi     PORTD, PORTD3
     jmp     rowsDone
-testRow7:
+row7:
     sbi     PORTD, PORTD5
     cbi     PORTD, PORTD4
     ldi     rRow, 0x00
