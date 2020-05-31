@@ -76,14 +76,18 @@ init:
      ldi    rJoyY, 0x80
 
      ldi    rTemp, 0x04         // sätt alla snake-segment till position (4, 4)
-     sts    snakeY + 0, rTemp
-     sts    snakeY + 1, rTemp
-     sts    snakeY + 2, rTemp
-     sts    snakeY + 3, rTemp
+
      sts    snakeX + 0, rTemp
+     sts    snakeY + 0, rTemp
+
      sts    snakeX + 1, rTemp
+     sts    snakeY + 1, rTemp
+
      sts    snakeX + 2, rTemp
+     sts    snakeY + 2, rTemp
+
      sts    snakeX + 3, rTemp
+     sts    snakeY + 3, rTemp
 
      ldi    rUpdate, 0x00
 
