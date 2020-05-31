@@ -448,6 +448,6 @@ rowsDone:
 
 lastRow:
     
-    pop     rITemp // Sätter rITemp till elementet i toppen av stacken och ökar SP
-    out     SREG, rStatus // Återställ statusregistret till vad det var innan avbrottet startade
+    pop     rITemp // set rITemp to stack top value and increases SP
+    out     SREG, rStatus // Restore SREG to value before interrupt occured!
     reti
