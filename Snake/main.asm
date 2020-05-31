@@ -14,15 +14,14 @@
 .DEF rStatus       = r3  //Store status register so that it may be restored post  "code-break?"
 .DEF rITemp         = r16
 .DEF rRow          = r17 // LED Row Iterator
-.DEF rUpdate       = r18 // Update gamlogic at TICK_RATE rate
-// Not interrupt registers
-.DEF rJoyX         = r19 // Joystick x-axel
-.DEF rJoyY         = r20 // Joystick y-axel
+.DEF rUpdate       = r18 // Update gamelogic at TICK_RATE rate
+// Non-Interrupt registers
+.DEF rJoyX         = r19 // Joystick X-axis
+.DEF rJoyY         = r20 // Joystick Y-axis
 .DEF rMask         = r21  //Mask specific bit-values to enable certain LEDs
 .DEF rTemp        = r22
-.DEF rX            = r23 // Argument till setPixel + temporär huvudposition
-.DEF rY            = r24 // -||-
-
+.DEF rX            = r23 // Argument for setPixel to store the snake's temporary head position in the X-Axis
+.DEF rY            = r24 // Argument for setPixel to store the snake's temporary head position in the Y-Axis
 .EQU SNAKE_LENGTH  = 5
 .EQU TICK_RATE	   = 128
 
@@ -255,11 +254,11 @@ iterateBody:
     brlo    iterateBody
 
 moveBodyDone:
-// Skriv huvudets nya position till RAM
+// write new head pos to SRAM
     sts     snakeX, rX
     sts     snakeY, rY
 
-// Töm matris
+// Clear the screen matrix!
     ldi     rTemp, 0x00
     sts     matrix + 0, rTemp
     sts     matrix + 1, rTemp
@@ -296,27 +295,24 @@ moveBodyDone:
 
 //----------------------------------------------------------------------//
 
-setPixel:
-// Enables specifik pixel first
-// rX = x-position att rita till (förstörs)
-// rY = y-position att rita till (förstörs)
+setPixel:		//Enables a LED based on rX amd rY
 
-// Beräkna 1 << rX
+// Calc 1 << rX ("Thanks Benny!")
     ldi     rMask, 0x01
 findXMask:
     cpi     rX, 0x00
-    breq    findXMaskDone   // Loopa tills rX == 0
-    lsl     rMask // Skiftar bit:arna i rMask ett steg åt vänster
+    breq    findXMaskDone   //Loop until rX equals 0
+    lsl     rMask			// Bit shifts rMask left by one
     dec     rX
     jmp     findXMask
 findXMaskDone:
 
-// Hitta rätt rad (matrix + rY)
+// Find the desired row! (matrix + rY)
     ldi     YL, LOW(matrix)
     ldi     YH, HIGH(matrix)
     add     YL, rY
 
-// Kombinera 1 << rX med radens gamla värde
+// Combine 1 << rX with the row:s old value! ("Thanks Benny!")
     ld      rTemp, Y
     or      rTemp, rMask
     st      Y, rTemp
@@ -326,10 +322,10 @@ findXMaskDone:
 //----------------------------------------------------------------------//
 
 timer:
-    in      rStatus, SREG   // Spara statusregistret så det kan återställas senare
-    push    rITemp // Sänker SP och sätter rITemp på toppen av stacken
+    in      rStatus, SREG   // Save SREG so it can be recovered!
+    push    rITemp // lowers SP and puts rITemp on top of the stack!
     
-// Clear all col:s
+// Clear all columns!!
     cbi     PORTD, PORTD6
     cbi     PORTD, PORTD7
     cbi     PORTB, PORTB0
@@ -339,7 +335,7 @@ timer:
     cbi     PORTB, PORTB4
     cbi     PORTB, PORTB5
 
-// Clear all row:s
+// Clear all rows!!
 	cbi     PORTD, PORTD5
     cbi     PORTC, PORTC0
     cbi     PORTC, PORTC1
@@ -350,7 +346,7 @@ timer:
     cbi     PORTD, PORTD4
 
 
-// Läs in värdet på rätt rad (matrix + rRow)
+// Read the right value at the right row! (matrix + rRow)
     ldi     XL, LOW(matrix)
     ldi     XH, HIGH(matrix)
     add     XL, rRow
