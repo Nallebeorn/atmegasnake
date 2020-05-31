@@ -12,17 +12,17 @@
 //////////////////////////////
 
 // Interrupt registers
+.DEF rStatus       = r3  // Lagra statusregister så de kan återställas efter avbrottet
 .DEF rTemp         = r16
 .DEF rRow          = r17 // Vilken led-rad som ska tändas härnäst
-.DEF rStatus       = r3  // Lagra statusregister så de kan återställas efter avbrottet
-.DEF rUpdate       = r22 // Räknar upp (till TICK_RATE) tills det är dags att uppdatera spellogiken
+.DEF rUpdate       = r18 // Räknar upp (till TICK_RATE) tills det är dags att uppdatera spellogiken
 // Not interrupt registers
-.DEF rTemp2        = r18
 .DEF rJoyX         = r19 // Joystick x-axel
 .DEF rJoyY         = r20 // Joystick y-axel
 .DEF rMask         = r21 // Används i setPixel, värdet på en matrisrad för att tända en viss pixel i raden
-.DEF rX            = r24 // Argument till setPixel + temporär huvudposition
-.DEF rY            = r25 // -||-
+.DEF rTemp2        = r22
+.DEF rX            = r23 // Argument till setPixel + temporär huvudposition
+.DEF rY            = r24 // -||-
 
 .EQU NUM_COLUMNS   = 8   // This variable does not seem to be used in the code? -Sebastian
 .EQU SNAKE_LENGTH  = 4
@@ -74,6 +74,25 @@ init:
      // Initialisera variabler
      ldi    rRow, 0x00
 
+	      // Big Smile
+     ldi    rTemp, 0x00 
+     sts    matrix + 0, rTemp 
+     ldi    rTemp, 0x24 
+     sts    matrix + 1, rTemp 
+     ldi    rTemp, 0x24 
+     sts    matrix + 2, rTemp 
+     ldi    rTemp, 0x00 
+     sts    matrix + 3, rTemp 
+ 
+     ldi    rTemp, 0x42 
+     sts    matrix + 4, rTemp 
+     ldi    rTemp, 0x3C 
+     sts    matrix + 5, rTemp 
+     ldi    rTemp, 0x0 
+     sts    matrix + 6, rTemp 
+     ldi    rTemp, 0x0 
+     sts    matrix + 7, rTemp 
+
 	  // sätt alla snake-segment till position (3, 3) "Bättre än Benjamins grupp (4, 4)" -Christoffer
      ldi    rTemp, 0x03        
      sts    snakeX + 0, rTemp
@@ -106,6 +125,18 @@ init:
 
 	  //nollställ räknaren
 	 ldi    rUpdate, 0x00
+	 
+	 //WAIT!!
+	/*ldi  r18, 5
+    ldi  r19, 15
+    ldi  r20, 242
+L1: dec  r20
+    brne L1
+    dec  r19
+    brne L1
+    dec  r18
+    brne L1*/
+
 loop:
 // A/D-omvandling
 // X-axel
