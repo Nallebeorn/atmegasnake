@@ -127,15 +127,15 @@ init:
 	 ldi    rUpdate, 0x00
 	 
 	 //WAIT!!
-	/*ldi  r18, 5
-    ldi  r19, 15
-    ldi  r20, 242
-L1: dec  r20
+	ldi  r16, 41 //16
+    ldi  r22, 150 //22
+    ldi  r25, 128 //26
+L1: dec  r25 //26
     brne L1
-    dec  r19
+    dec  r22 //22
     brne L1
-    dec  r18
-    brne L1*/
+    dec  r16 //16
+    brne L1
 
 loop:
 // A/D-omvandling
