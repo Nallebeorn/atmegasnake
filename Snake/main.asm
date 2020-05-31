@@ -11,27 +11,27 @@
 //							//
 //////////////////////////////
 
-// Interrupt registers
-.DEF rStatus       = r3  // Lagra statusregister så de kan återställas efter avbrottet
+// Interrupt registers 
+.DEF rStatus       = r3  //Store status register so that it may be restored post  "code-break?"
 .DEF rITemp         = r16
-.DEF rRow          = r17 // Vilken led-rad som ska tändas härnäst
-.DEF rUpdate       = r18 // Räknar upp (till TICK_RATE) tills det är dags att uppdatera spellogiken
+.DEF rRow          = r17 // LED Row Iterator
+.DEF rUpdate       = r18 // Update gamlogic at TICK_RATE rate
 // Not interrupt registers
 .DEF rJoyX         = r19 // Joystick x-axel
 .DEF rJoyY         = r20 // Joystick y-axel
-.DEF rMask         = r21 // Används i setPixel, värdet på en matrisrad för att tända en viss pixel i raden
+.DEF rMask         = r21  //Mask specific bit-values to enable certain LEDs
 .DEF rTemp        = r22
 .DEF rX            = r23 // Argument till setPixel + temporär huvudposition
 .DEF rY            = r24 // -||-
 
-.EQU SNAKE_LENGTH  = 4
+.EQU SNAKE_LENGTH  = 5
 .EQU TICK_RATE	   = 128
 
 
 .DSEG
 
-matrix:   .BYTE 8            // Varje byte representerar en rad. MSB är kolumn längst till höger och LSB är kolumn längst till vänster.
-snakeX:   .BYTE SNAKE_LENGTH // Array av x-positioner (första är huvudets x)
+matrix:   .BYTE 8            // Each byte represents a row. MSB represents kolumns to the right and LSB represents those to the left.
+snakeX:   .BYTE SNAKE_LENGTH // x-Positions (första är huvudets x)
 snakeY:   .BYTE SNAKE_LENGTH // Array av y-positioner (första är huvudets y)
 
 .CSEG
@@ -101,6 +101,8 @@ init:
      sts    snakeY + 2, rITemp
      sts    snakeX + 3, rITemp
      sts    snakeY + 3, rITemp
+	 sts    snakeX + 4, rITemp
+     sts    snakeY + 4, rITemp
 
 	 // Sätt joystickens neutral position (hälften av 256)
 	 ldi    rJoyX, 0x80     
@@ -138,6 +140,7 @@ L1: dec  r25 //26
 loop:
 // A/D-omvandling
 // X-axel
+readJoyX:
 	lds     rTemp, ADMUX   // ADMUX använd för att välja rätt analogingång
     andi    rTemp, 0xf0    // Sätt bit 0-3 till 0
     ori     rTemp, 0x05    // Sätt bit 0-3 till rätt värde för x-axelns analogingång
