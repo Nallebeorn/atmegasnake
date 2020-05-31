@@ -269,11 +269,29 @@ moveBodyDone:
     sts     matrix + 6, rTemp
     sts     matrix + 7, rTemp
 
-	renderSnake:
-	lds     rX, snakeX 
-    lds     rY, snakeY 
-    call    setPixel
+	//Render Snake
 
+	ldi rITemp, 0x00	
+	ldi Y, snakeY
+	ldi Z, snakeX
+	renderSnake:
+
+	lds  rITemp, Z
+
+
+	lds  rITemp, Y
+	
+
+	
+
+    call	setPixel
+	inc Z
+	inc Y
+	inc	rITemp
+	cpi	rITemp,  SNAKE_LENGTH
+	brne renderSnake
+
+	/*
     lds     rX, snakeX + 1
     lds     rY, snakeY + 1
     call    setPixel
@@ -288,7 +306,7 @@ moveBodyDone:
 
 	lds     rX, snakeX + 4
     lds     rY, snakeY + 4
-    call    setPixel
+    call    setPixel*/
 	
 // Wait for next Update
     jmp     loop
