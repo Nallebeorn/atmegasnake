@@ -137,7 +137,7 @@ L1: dec  r25 //26
     dec  r16 //16
     brne L1
 
-loop:
+update:
 // A/D-omvandling
 // X-axel
 readJoyX:
@@ -190,7 +190,7 @@ readJoyDone:
 
 // Kolla om det är dags att uppdatera
     cpi     rUpdate, TICK_RATE
-    brlo    loop                        // Om nej, loopa för att fortsätta vänta
+    brlo    update                        // Om nej, uppdatera för att fortsätta vänta
     ldi     rUpdate, 0x00               // Om ja, nollställ räknaren
 
 // Flytta huvud
@@ -242,7 +242,7 @@ moveTail:
     ldi     ZL, LOW( snakeY + SNAKE_LENGTH - 2)
     ldi     ZH, HIGH(snakeY + SNAKE_LENGTH - 2)
     ldi     rITemp, 0x00
-tailLoop:
+tailupdate:
     ld      rTemp, Y
     std     Y + 1, rTemp
     ld      rTemp, Z
@@ -252,7 +252,7 @@ tailLoop:
     dec     ZL
     inc     rITemp
     cpi     rITemp, SNAKE_LENGTH - 1
-    brlo    tailLoop
+    brlo    tailupdate
 
 moveTailDone:
 // Skriv huvudets nya position till RAM
@@ -288,8 +288,8 @@ moveTailDone:
     lds     rY, snakeY + 3
     call    setPixel
 
-// Klar! Loopa och invänta nästa update
-    jmp     loop
+// Klar! loopa och invänta nästa update
+    jmp     update
 
 //----------------------------------------------------------------------//
 
@@ -302,7 +302,7 @@ setPixel:
     ldi     rMask, 0x01
 findXMask:
     cpi     rX, 0x00
-    breq    findXMaskDone   // Loopa tills rX == 0
+    breq    findXMaskDone   // loopa tills rX == 0
     lsl     rMask // Skiftar bit:arna i rMask ett steg åt vänster
     dec     rX
     jmp     findXMask
